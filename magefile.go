@@ -4,25 +4,36 @@ package main
 
 import (
 	"fmt"
-	"github.com/magefile/mage/mg"
-	"github.com/magefile/mage/sh"
 	"os"
 	"time"
+
+	"github.com/magefile/mage/mg"
+	"github.com/magefile/mage/sh"
 )
 
 const (
 	entryPoint = "cmd/lbs.go"
 	ldFlags    = "-X $PACKAGE/version/version.commitHash=$COMMIT_HASH " +
 		"-X $PACKAGE/version/version.buildDate=$BUILD_DATE"
+	protoFileName = "server.proto"
+	protoFlags    = "--go_out=plugins=grpc:."
 )
 
 // allow user to override go executable by running as GOEXE=xxx mage ... on
 // UNIX-like systems.
 var goexe = "go"
 
+// allow user to override go executable by running as PROTOC=xxx mage ... on
+// UNIX-like systems.
+var protoc = "protoc"
+
 func init() {
 	if exe := os.Getenv("GOEXE"); exe != "" {
 		goexe = exe
+	}
+
+	if exe := os.Getenv("PROTOC"); exe != "" {
+		protoc = exe
 	}
 
 	// We want to use Go 1.11 modules even if the source lives inside GOPATH.
@@ -30,8 +41,16 @@ func init() {
 	os.Setenv("GO111MODULE", "on")
 }
 
+func Proto() error {
+	return runCmd(flagEnv(), protoc, protoFlags, protoFileName)
+}
+
 // Build binary
 func Build() error {
+	if err := Proto(); err != nil {
+		return err
+	}
+
 	return runCmd(flagEnv(), goexe, "build", "-ldflags", ldFlags, entryPoint)
 }
 
