@@ -174,3 +174,4 @@ Temporary Items
 # End of https://www.toptal.com/developers/gitignore/api/go,jetbrains,code,macos,linux
 
 lbs
+server.pb.go
