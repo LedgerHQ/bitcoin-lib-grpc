@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net"
 
-	protobuf "github.com/ledgerhq/lama-bitcoin-svc"
 	"github.com/ledgerhq/lama-bitcoin-svc/log"
+	pb "github.com/ledgerhq/lama-bitcoin-svc/pb/v1"
 	"github.com/ledgerhq/lama-bitcoin-svc/pkg/bitcoin"
 	"google.golang.org/grpc"
 )
@@ -19,7 +19,7 @@ func serve() {
 	}
 
 	s := grpc.NewServer()
-	protobuf.RegisterBitcoinServiceServer(s, &bitcoin.Service{})
+	pb.RegisterCoinServiceServer(s, &bitcoin.Service{})
 
 	if err := s.Serve(conn); err != nil {
 		log.Fatalf("Failed to serve: %v", err)
