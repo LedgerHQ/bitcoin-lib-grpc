@@ -15,17 +15,14 @@ const (
 	entryPoint = "cmd/lbs.go"
 	ldFlags    = "-X $PACKAGE/version/version.commitHash=$COMMIT_HASH " +
 		"-X $PACKAGE/version/version.buildDate=$BUILD_DATE"
-	protoFileName = "server.proto"
-	protoFlags    = "--go_out=plugins=grpc:."
+	protoPlugins  = "plugins=grpc"
+	protoDir      = "pb/v1"
+	protoFileName = "service.proto"
 )
 
-// allow user to override go executable by running as GOEXE=xxx mage ... on
-// UNIX-like systems.
-var goexe = "go"
-
-// allow user to override go executable by running as PROTOC=xxx mage ... on
-// UNIX-like systems.
-var protoc = "protoc"
+// Allow user to override executables on UNIX-like systems.
+var goexe = "go"      // GOEXE=xxx mage build
+var protoc = "protoc" // PROTOC=xxx mage proto
 
 func init() {
 	if exe := os.Getenv("GOEXE"); exe != "" {
@@ -42,7 +39,9 @@ func init() {
 }
 
 func Proto() error {
-	return runCmd(flagEnv(), protoc, protoFlags, protoFileName)
+	return runCmd(flagEnv(), protoc,
+		fmt.Sprintf("--go_out=%s:%s", protoPlugins, protoDir), // protoc flags
+		fmt.Sprintf("%s/%s", protoDir, protoFileName))         // input .proto
 }
 
 // Build binary
