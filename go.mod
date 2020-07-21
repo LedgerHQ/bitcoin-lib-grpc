@@ -4,8 +4,8 @@ go 1.14
 
 require (
 	github.com/btcsuite/btcd v0.20.1-beta
-	github.com/btcsuite/btcutil v1.0.2
-	github.com/golang/protobuf v1.4.1
+	github.com/btcsuite/btcutil v1.0.3-0.20200713135911-4649e4b73b34
+	github.com/golang/protobuf v1.4.1 // indirect
 	github.com/magefile/mage v1.10.0
 	github.com/sirupsen/logrus v1.4.1
 	github.com/spf13/viper v1.3.2
@@ -15,5 +15,5 @@ require (
 	golang.org/x/text v0.3.3 // indirect
 	google.golang.org/genproto v0.0.0-20200715011427-11fb19a81f2c // indirect
 	google.golang.org/grpc v1.30.0
-	google.golang.org/protobuf v1.25.0
+	google.golang.org/protobuf v1.25.0 // indirect
 )
