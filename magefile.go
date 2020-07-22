@@ -7,7 +7,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 )
 
@@ -23,6 +22,7 @@ const (
 // Allow user to override executables on UNIX-like systems.
 var goexe = "go"      // GOEXE=xxx mage build
 var protoc = "protoc" // PROTOC=xxx mage proto
+var buf = "buf"       // BUF=xxx mage protolist
 
 func init() {
 	if exe := os.Getenv("GOEXE"); exe != "" {
@@ -33,15 +33,33 @@ func init() {
 		protoc = exe
 	}
 
+	if exe := os.Getenv("BUF"); exe != "" {
+		buf = exe
+	}
+
 	// We want to use Go 1.11 modules even if the source lives inside GOPATH.
 	// The default is "auto".
 	os.Setenv("GO111MODULE", "on")
 }
 
 func Proto() error {
-	return runCmd(flagEnv(), protoc,
+	return sh.Run(protoc,
 		fmt.Sprintf("--go_out=%s:%s", protoPlugins, protoDir), // protoc flags
 		fmt.Sprintf("%s/%s", protoDir, protoFileName))         // input .proto
+}
+
+func Buf() error {
+	// Verify if the proto files can be compiled.
+	if err := sh.Run(buf, "image", "build", "-o /dev/null"); err != nil {
+		return err
+	}
+
+	// Run Buf lint checks on the protobuf files.
+	if err := sh.Run(buf, "check", "lint"); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Build binary
@@ -50,23 +68,18 @@ func Build() error {
 		return err
 	}
 
-	return runCmd(flagEnv(), goexe, "build", "-ldflags", ldFlags, entryPoint)
-}
-
-// Build binary with race detector enabled
-func BuildRace() error {
-	return runCmd(flagEnv(), goexe, "build", "-race", "-ldflags", ldFlags,
+	return sh.RunWith(flagEnv(), goexe, "build", "-ldflags", ldFlags,
 		entryPoint)
 }
 
 // Run tests
 func Test() error {
-	return runCmd(flagEnv(), goexe, "test", "./...")
+	return sh.Run(goexe, "test", "./...")
 }
 
 // Run tests with race detector
 func TestRace() error {
-	return runCmd(flagEnv(), goexe, "test", "-race", "./...")
+	return sh.Run(goexe, "test", "-race", "./...")
 }
 
 // Run basic golangci-lint check.
@@ -79,7 +92,7 @@ func Lint() error {
 		"--enable=gosec",
 	}
 
-	if err := runCmd(flagEnv(), "golangci-lint", linterArgs...); err != nil {
+	if err := sh.Run("golangci-lint", linterArgs...); err != nil {
 		return err
 	}
 
@@ -93,16 +106,4 @@ func flagEnv() map[string]string {
 		"COMMIT_HASH": hash,
 		"BUILD_DATE":  time.Now().Format("2006-01-02T15:04:05Z0700"),
 	}
-}
-
-func runCmd(env map[string]string, cmd string, args ...string) error {
-	if mg.Verbose() {
-		return sh.RunWith(env, cmd, args...)
-	}
-
-	if output, err := sh.OutputWith(env, cmd, args...); err != nil {
-		fmt.Fprint(os.Stderr, output)
-	}
-
-	return nil
 }
