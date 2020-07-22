@@ -1,3 +1,0 @@
-[submodule "lama-protos"]
-	path = lama-protos
-	url = git@github.com:LedgerHQ/lama-protos.git

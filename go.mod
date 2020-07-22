@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/btcsuite/btcd v0.20.1-beta
 	github.com/btcsuite/btcutil v1.0.3-0.20200713135911-4649e4b73b34
-	github.com/golang/protobuf v1.4.1 // indirect
+	github.com/ledgerhq/lama-bitcoin-svc/pb v0.1.0
 	github.com/magefile/mage v1.10.0
 	github.com/sirupsen/logrus v1.4.1
 	github.com/spf13/viper v1.3.2
@@ -17,3 +17,5 @@ require (
 	google.golang.org/grpc v1.30.0
 	google.golang.org/protobuf v1.25.0 // indirect
 )
+
+replace github.com/ledgerhq/lama-bitcoin-svc/pb => ./pb
