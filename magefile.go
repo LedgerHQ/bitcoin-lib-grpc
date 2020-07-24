@@ -82,6 +82,14 @@ func TestRace() error {
 	return sh.Run(goexe, "test", "-race", "./...")
 }
 
+// Run tests with race-detector and code-coverage.
+// Useful on CI, but can be run locally too.
+func TestRaceCover() error {
+	return sh.Run(
+		goexe, "test", "-race", "-coverprofile=coverage.txt",
+		"-covermode=atomic", "./...")
+}
+
 // Run basic golangci-lint check.
 func Lint() error {
 	linterArgs := []string{
