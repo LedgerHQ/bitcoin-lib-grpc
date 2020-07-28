@@ -1,51 +1,76 @@
 package bitcoin
 
 import (
-	"context"
+	"encoding/hex"
 
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/btcsuite/btcd/txscript"
+	"github.com/pkg/errors"
 
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcutil"
-	pb "github.com/ledgerhq/lama-bitcoin-svc/pb/v1"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
-type Service struct{}
+// AddressEncoding is an enum type for the various address encoding
+// schemes supported for Bitcoin.
+type AddressEncoding int
 
-func (s *Service) ValidateAddress(
-	ctx context.Context, request *pb.ValidateAddressRequest,
-) (*pb.ValidateAddressResponse, error) {
-	params, err := getChainParams(request.ChainParams)
+const (
+	// Legacy indicates the P2PKH address encoding scheme.
+	Legacy AddressEncoding = iota
+
+	// WrappedSegwit indicates the P2WPKH-in-P2SH address encoding
+	// scheme.
+	WrappedSegwit
+
+	// NativeSegwit indicates the P2WPKH address encoding scheme.
+	NativeSegwit
+)
+
+// ChainParams is a type alias for chaincfg.Params, to allow external
+// packages to refer to the chain parameters without importing btcd.
+type ChainParams = *chaincfg.Params
+
+var (
+	// Mainnet defines the network parameters for the main Bitcoin network.
+	Mainnet = &chaincfg.MainNetParams
+
+	// Testnet3 defines the network parameters for the test Bitcoin network
+	// (version 3).
+	Testnet3 = &chaincfg.TestNet3Params
+
+	// Regtest defines the network parameters for the regression test
+	// Bitcoin network.
+	Regtest = &chaincfg.RegressionNetParams
+)
+
+// ValidateAddress returns an error if the given address is malformed.
+// It returns the normalized address otherwise.
+func (s *Service) ValidateAddress(address string, chainParams ChainParams) (string, error) {
+	addr, err := btcutil.DecodeAddress(address, chainParams)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, err.Error())
+		return "", errors.Wrapf(err, "failed to decode address %s", address)
 	}
 
-	addr, err := btcutil.DecodeAddress(request.Address, params)
-	if err != nil {
-		return &pb.ValidateAddressResponse{
-			Address:       request.Address,
-			IsValid:       false,
-			InvalidReason: err.Error(),
-		}, nil
-	}
-
-	return &pb.ValidateAddressResponse{
-		Address: addr.EncodeAddress(), // Normalize the original address
-		IsValid: true,
-	}, nil
+	// Normalize the original address
+	return addr.EncodeAddress(), nil
 }
 
+// EncodeAddress serializes a public key into a string, based on the
+// encoding and the chain parameters.
+//
+// References:
+//   [Learn me a Bitcoin]: P2PKH - Pay To Pubkey Hash
+//   https://learnmeabitcoin.com/technical/p2pkh
+//
+//   [BIP13]: BIP0013 - Address Format for pay-to-script-hash
+//   https://github.com/bitcoin/bips/blob/master/bip-0013.mediawiki
+//
+//   [BIP173]: BIP0173 - Base32 address format for native v0-16 witness outputs
+//   https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki
 func (s *Service) EncodeAddress(
-	ctx context.Context, request *pb.EncodeAddressRequest,
-) (*pb.EncodeAddressResponse, error) {
-	chainParams, err := getChainParams(request.ChainParams)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, err.Error())
-	}
-
+	publicKey []byte, encoding AddressEncoding, chainParams ChainParams,
+) (string, error) {
 	// Load the serialized public key to a btcec.PublicKey type, in order to
 	// ensure that the:
 	//   * public point is on the secp256k1 elliptic curve.
@@ -56,9 +81,10 @@ func (s *Service) EncodeAddress(
 	//
 	// Using addresses encoded from incorrect public keys may lead to
 	// irrevocable fund loss.
-	publicKey, err := btcec.ParsePubKey(request.PublicKey, btcec.S256())
+	loadedPublicKey, err := btcec.ParsePubKey(publicKey, btcec.S256())
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, err.Error())
+		return "", errors.Wrapf(err, "failed to parse public key %s",
+			hex.EncodeToString(publicKey))
 	}
 
 	// Calculate the RIPEMD160 of the SHA256 of a public key, aka HASH160.
@@ -68,14 +94,14 @@ func (s *Service) EncodeAddress(
 	// either compressed or uncompressed. Regarding P2PKH addresses, the
 	// convention at Ledger and in Bitcoin Wiki examples is to use compressed
 	// public keys.
-	publicKeyHash := btcutil.Hash160(publicKey.SerializeCompressed())
+	publicKeyHash := btcutil.Hash160(loadedPublicKey.SerializeCompressed())
 
 	address, err := func() (btcutil.Address, error) {
-		switch request.Encoding {
-		case pb.AddressEncoding_ADDRESS_ENCODING_P2PKH:
+		switch encoding {
+		case Legacy:
 			// Ref: https://en.bitcoin.it/wiki/Technical_background_of_version_1_Bitcoin_addresses
 			return btcutil.NewAddressPubKeyHash(publicKeyHash, chainParams)
-		case pb.AddressEncoding_ADDRESS_ENCODING_P2SH_P2WPKH:
+		case WrappedSegwit:
 			// Ref: https://bitcoincore.org/en/segwit_wallet_dev/#creation-of-p2sh-p2wpkh-address
 
 			// Create a P2WPKH native-segwit address
@@ -97,30 +123,18 @@ func (s *Service) EncodeAddress(
 			}
 
 			return btcutil.NewAddressScriptHash(redeemScript, chainParams)
-		case pb.AddressEncoding_ADDRESS_ENCODING_P2WPKH:
+		case NativeSegwit:
 			// Ref: https://bitcoincore.org/en/segwit_wallet_dev/#native-pay-to-witness-public-key-hash-p2wpkh
 			return btcutil.NewAddressWitnessPubKeyHash(publicKeyHash, chainParams)
 		default:
-			return nil, btcutil.ErrUnknownAddressType
+			return nil, ErrUnknownAddressType
 		}
 	}()
 
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return "", errors.Wrapf(err, "unable to encode public key %s to address",
+			hex.EncodeToString(publicKey))
 	}
 
-	return &pb.EncodeAddressResponse{Address: address.EncodeAddress()}, nil
-}
-
-func getChainParams(params *pb.ChainParams) (*chaincfg.Params, error) {
-	switch network := params.GetBitcoinNetwork(); network {
-	case pb.BitcoinNetwork_BITCOIN_NETWORK_MAINNET:
-		return &chaincfg.MainNetParams, nil
-	case pb.BitcoinNetwork_BITCOIN_NETWORK_TESTNET3:
-		return &chaincfg.TestNet3Params, nil
-	case pb.BitcoinNetwork_BITCOIN_NETWORK_REGTEST:
-		return &chaincfg.RegressionNetParams, nil
-	default:
-		return nil, ErrUnknownNetwork(network.String())
-	}
+	return address.EncodeAddress(), nil
 }

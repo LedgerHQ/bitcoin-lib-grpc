@@ -1,13 +1,17 @@
 package bitcoin
 
 import (
-	"context"
-
 	"github.com/btcsuite/btcutil/hdkeychain"
-	pb "github.com/ledgerhq/lama-bitcoin-svc/pb/v1"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	"github.com/pkg/errors"
 )
+
+// PublicKeyMaterial contains an extended public key, and the corresponding
+// public key - chain code pair.
+type PublicKeyMaterial struct {
+	ExtendedKey string
+	PublicKey   []byte
+	ChainCode   []byte
+}
 
 // References:
 //   [BIP32]: BIP0032 - Hierarchical Deterministic Wallets
@@ -29,30 +33,34 @@ import (
 //     PublicKey:   33-byte compressed public key of the derived extended key.
 //     ChainCode:   32-byte chain code of the derived extended key.
 func (s *Service) DeriveExtendedKey(
-	ctx context.Context, request *pb.DeriveExtendedKeyRequest,
-) (*pb.DeriveExtendedKeyResponse, error) {
-	extendedKey, err := hdkeychain.NewKeyFromString(request.ExtendedKey)
+	extendedKey string, derivation []uint32,
+) (PublicKeyMaterial, error) {
+	response := PublicKeyMaterial{}
+
+	xKey, err := hdkeychain.NewKeyFromString(extendedKey)
 	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, err.Error())
+		return response, errors.Wrapf(err, "failed to decode xkey %s",
+			extendedKey)
 	}
 
 	// Derive len(request.Derivation) HD levels, starting from extendedKey
 	// as the parent node.
-	for _, childIndex := range request.Derivation {
-		extendedKey, err = extendedKey.Child(childIndex)
+	for _, childIndex := range derivation {
+		xKey, err = xKey.Child(childIndex)
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, err.Error())
+			return response, errors.Wrapf(err, "failed to derive xkey %s at index %d",
+				extendedKey, childIndex)
 		}
 	}
 
-	pubKey, err := extendedKey.ECPubKey()
+	pubKey, err := xKey.ECPubKey()
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return response, errors.Wrapf(err, "failed to get public key from xkey %s",
+			extendedKey)
 	}
 
-	return &pb.DeriveExtendedKeyResponse{
-		ExtendedKey: extendedKey.String(),
-		PublicKey:   pubKey.SerializeCompressed(),
-		ChainCode:   extendedKey.ChainCode(),
-	}, nil
+	response.ExtendedKey = xKey.String()
+	response.PublicKey = pubKey.SerializeCompressed()
+	response.ChainCode = xKey.ChainCode()
+	return response, nil
 }
