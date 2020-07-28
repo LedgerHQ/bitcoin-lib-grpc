@@ -7,6 +7,7 @@ require (
 	github.com/btcsuite/btcutil v1.0.3-0.20200713135911-4649e4b73b34
 	github.com/ledgerhq/lama-bitcoin-svc/pb v0.1.0
 	github.com/magefile/mage v1.10.0
+	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.4.1
 	github.com/spf13/viper v1.3.2
 	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899 // indirect

@@ -1,11 +1,7 @@
 package bitcoin
 
-import "fmt"
+import "github.com/btcsuite/btcutil"
 
-// ErrUnknownNetwork is returned when a string representing an unknown network
-// is found.
-type ErrUnknownNetwork string
-
-func (e ErrUnknownNetwork) Error() string {
-	return fmt.Sprintf("invalid network in chain params: %s", string(e))
-}
+// ErrUnknownAddressType is a type alias to allow reference in external
+// packages without importing btcutil.
+var ErrUnknownAddressType = btcutil.ErrUnknownAddressType

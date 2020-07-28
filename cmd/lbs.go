@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net"
 
+	controllers "github.com/ledgerhq/lama-bitcoin-svc/grpc"
 	"github.com/ledgerhq/lama-bitcoin-svc/log"
-	pb "github.com/ledgerhq/lama-bitcoin-svc/pb/v1"
-	"github.com/ledgerhq/lama-bitcoin-svc/pkg/bitcoin"
+	"github.com/ledgerhq/lama-bitcoin-svc/pb/v1"
 	"google.golang.org/grpc"
 )
 
@@ -19,7 +19,8 @@ func serve() {
 	}
 
 	s := grpc.NewServer()
-	pb.RegisterCoinServiceServer(s, &bitcoin.Service{})
+	bitcoinController := controllers.NewBitcoinController()
+	pb.RegisterCoinServiceServer(s, bitcoinController)
 
 	if err := s.Serve(conn); err != nil {
 		log.Fatalf("Failed to serve: %v", err)

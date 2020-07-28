@@ -1,14 +1,12 @@
 package bitcoin
 
 import (
-	"context"
 	"reflect"
 	"testing"
 
+	"github.com/pkg/errors"
+
 	"github.com/btcsuite/btcutil/hdkeychain"
-	pb "github.com/ledgerhq/lama-bitcoin-svc/pb/v1"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 // h indicates the BIP32 harden bit, equivalent to 2^31.
@@ -16,29 +14,25 @@ var h uint32 = 0x80000000
 
 func TestDeriveExtendedKey(t *testing.T) {
 	tests := []struct {
-		name    string
-		request *pb.DeriveExtendedKeyRequest
-		want    *pb.DeriveExtendedKeyResponse
-		wantErr *status.Status
+		name       string
+		key        string
+		derivation []uint32
+		want       PublicKeyMaterial
+		wantErr    error
 	}{
 		{
 			// BIP0032: Test Vector 1 (chain m/0H/1/2H)
-			name: "ErrDeriveHardFromPublic",
-			request: &pb.DeriveExtendedKeyRequest{
-				ExtendedKey: "xpub6D4BDPcP2GT577Vvch3R8wDkScZWzQzMMUm3PWbmWvVJrZwQY4VUNgqFJPMM3No2dFDFGTsxxpG5uJh7n7epu4trkrX7x7DogT5Uv6fcLW5",
-				Derivation:  []uint32{0 + h, 1, 2 + h},
-			},
-			want:    nil,
-			wantErr: status.New(codes.Internal, hdkeychain.ErrDeriveHardFromPublic.Error()),
+			name:       "ErrDeriveHardFromPublic",
+			key:        "xpub6D4BDPcP2GT577Vvch3R8wDkScZWzQzMMUm3PWbmWvVJrZwQY4VUNgqFJPMM3No2dFDFGTsxxpG5uJh7n7epu4trkrX7x7DogT5Uv6fcLW5",
+			derivation: []uint32{0 + h, 1, 2 + h},
+			wantErr:    hdkeychain.ErrDeriveHardFromPublic,
 		},
 		{
 			// BIP0032: Test Vector 2 (chain m)
-			name: "mainnet derive from root",
-			request: &pb.DeriveExtendedKeyRequest{
-				ExtendedKey: "xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6oDMSgv6Zz8idoc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB",
-				Derivation:  []uint32{0, 2147483647, 1, 2147483646, 2}, // m/0/2147483647/1/2147483646/2
-			},
-			want: &pb.DeriveExtendedKeyResponse{
+			name:       "mainnet derive from root",
+			key:        "xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu8ED9W6oDMSgv6Zz8idoc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB",
+			derivation: []uint32{0, 2147483647, 1, 2147483646, 2}, // m/0/2147483647/1/2147483646/2
+			want: PublicKeyMaterial{
 				ExtendedKey: "xpub6H7WkJf547AiSwAbX6xsm8Bmq9M9P1Gjequ5SipsjipWmtXSyp4C3uwzewedGEgAMsDy4jEvNTWtxLyqqHY9C12gaBmgUdk2CGmwachwnWK",
 				PublicKey: []byte{
 					0x03, 0x54, 0xf9, 0x40, 0xcd, 0xd9, 0x6e, 0xeb,
@@ -57,12 +51,10 @@ func TestDeriveExtendedKey(t *testing.T) {
 		},
 		{
 			// https://github.com/LedgerHQ/lib-ledger-core/blob/54ddf50/core/test/bitcoin/address_test.cpp#L81
-			name: "mainnet derive from account level",
-			request: &pb.DeriveExtendedKeyRequest{
-				ExtendedKey: "xpub6Cc939fyHvfB9pPLWd3bSyyQFvgKbwhidca49jGCM5Hz5ypEPGf9JVXB4NBuUfPgoHnMjN6oNgdC9KRqM11RZtL8QLW6rFKziNwHDYhZ6Kx",
-				Derivation:  []uint32{0, 1}, // m/44'/0'/0'/0/1
-			},
-			want: &pb.DeriveExtendedKeyResponse{
+			name:       "mainnet derive from account level",
+			key:        "xpub6Cc939fyHvfB9pPLWd3bSyyQFvgKbwhidca49jGCM5Hz5ypEPGf9JVXB4NBuUfPgoHnMjN6oNgdC9KRqM11RZtL8QLW6rFKziNwHDYhZ6Kx",
+			derivation: []uint32{0, 1}, // m/44'/0'/0'/0/1
+			want: PublicKeyMaterial{
 				ExtendedKey: "xpub6HHu39JZziv1GHo1Yvm3DBa7Wztu93uMyrssG9DFgXsnmaRs7JmCtrcGRvJVd5gnvtRfDXW1CqfR7Q4CwCFsWWAYUHnWPEAKEdr35q51JY3",
 				PublicKey: []byte{
 					0x02, 0xc3, 0x68, 0xbd, 0xec, 0x47, 0xa1, 0xb6,
@@ -81,12 +73,10 @@ func TestDeriveExtendedKey(t *testing.T) {
 		},
 		{
 			// BIP0032: Test vector 1 (combining chains m/0H/1/2H and m/0H/1/2H/2 for testnet3)
-			name: "testnet3 derive chain path",
-			request: &pb.DeriveExtendedKeyRequest{
-				ExtendedKey: "tpubDDRojdS4jYQXNugn4t2WLrZ7mjfAyoVQu7MLk4eurqFCbrc7cHLZX8W5YRS8ZskGR9k9t3PqVv68bVBjAyW4nWM9pTGRddt3GQftg6MVQsm",
-				Derivation:  []uint32{2}, // m/0'/1/2'/2
-			},
-			want: &pb.DeriveExtendedKeyResponse{
+			name:       "testnet3 derive chain path",
+			key:        "tpubDDRojdS4jYQXNugn4t2WLrZ7mjfAyoVQu7MLk4eurqFCbrc7cHLZX8W5YRS8ZskGR9k9t3PqVv68bVBjAyW4nWM9pTGRddt3GQftg6MVQsm",
+			derivation: []uint32{2}, // m/0'/1/2'/2
+			want: PublicKeyMaterial{
 				ExtendedKey: "tpubDFfCa4Z1v25WTPAVm9EbEMiRrYwucPocLbEe12BPBGooxxEUg42vihy1DkRWyftztTsL23snYezF9uXjGGwGW6pQjEpcTpmsH6ajpf4CVPn",
 				PublicKey: []byte{
 					0x02, 0xe8, 0x44, 0x50, 0x82, 0xa7, 0x2f, 0x29,
@@ -106,12 +96,10 @@ func TestDeriveExtendedKey(t *testing.T) {
 		{
 			// BIP0032: Test Vector 1 (chain m/0H/1/2H)
 			// https://github.com/btcsuite/btcutil/blob/4649e4b/hdkeychain/extendedkey_test.go#L583-L593
-			name: "no derivation",
-			request: &pb.DeriveExtendedKeyRequest{
-				ExtendedKey: "xpub6D4BDPcP2GT577Vvch3R8wDkScZWzQzMMUm3PWbmWvVJrZwQY4VUNgqFJPMM3No2dFDFGTsxxpG5uJh7n7epu4trkrX7x7DogT5Uv6fcLW5",
-				Derivation:  []uint32{},
-			},
-			want: &pb.DeriveExtendedKeyResponse{
+			name:       "no derivation",
+			key:        "xpub6D4BDPcP2GT577Vvch3R8wDkScZWzQzMMUm3PWbmWvVJrZwQY4VUNgqFJPMM3No2dFDFGTsxxpG5uJh7n7epu4trkrX7x7DogT5Uv6fcLW5",
+			derivation: []uint32{},
+			want: PublicKeyMaterial{
 				ExtendedKey: "xpub6D4BDPcP2GT577Vvch3R8wDkScZWzQzMMUm3PWbmWvVJrZwQY4VUNgqFJPMM3No2dFDFGTsxxpG5uJh7n7epu4trkrX7x7DogT5Uv6fcLW5",
 				PublicKey: []byte{
 					0x03, 0x57, 0xbf, 0xe1, 0xe3, 0x41, 0xd0, 0x1c,
@@ -128,37 +116,37 @@ func TestDeriveExtendedKey(t *testing.T) {
 				},
 			},
 		},
+		{
+			// invalid extended key length
+			name:       "ErrInvalidKeyLen",
+			key:        "deadbeef",
+			derivation: []uint32{},
+			wantErr:    hdkeychain.ErrInvalidKeyLen,
+		},
 	}
 
-	ctx := context.Background()
 	s := &Service{}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := s.DeriveExtendedKey(ctx, tt.request)
-			grpcErr := status.Convert(err)
-
-			if grpcErr != nil && tt.wantErr == nil {
-				t.Errorf("unexpected error in DeriveExtendedKey(): %v", grpcErr.Message())
-				return
+			got, err := s.DeriveExtendedKey(tt.key, tt.derivation)
+			if err != nil && tt.wantErr == nil {
+				t.Fatalf("DeriveExtendedKey() unexpected error: %v", err)
 			}
 
-			if tt.wantErr != nil {
-				if grpcErr.Code() != tt.wantErr.Code() {
-					t.Errorf("DeriveExtendedKey() gRPC error code = %v, want %v",
-						grpcErr.Code(), tt.wantErr.Code())
-					return
-				}
+			if err == nil && tt.wantErr != nil {
+				t.Fatalf("DeriveExtendedKey() got no error, want '%v'",
+					tt.wantErr)
+			}
 
-				if grpcErr.Message() != tt.wantErr.Message() {
-					t.Errorf("DeriveExtendedKey() gRPC error msg = %v, want %v",
-						grpcErr.Message(), tt.wantErr.Message())
-					return
-				}
+			if err != nil && tt.wantErr.Error() != errors.Cause(err).Error() {
+				t.Fatalf("DeriveExtendedKey() got error '%v', want '%v'",
+					err, tt.wantErr)
 			}
 
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("DeriveExtendedKey() got = %v, want %v", got, tt.want)
+				t.Fatalf("DeriveExtendedKey() got error '%v', want '%v'",
+					got, tt.want)
 			}
 		})
 	}
