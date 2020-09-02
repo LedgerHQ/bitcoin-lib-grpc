@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package pb.v1;
 option go_package = ".;pb";
-option java_package = "co.ledger.protobuf";
+option java_package = "co.ledger.bitcoin.protobuf";
 
 // CoinService exposes a gRPC interface to wrap protocol-centric logic
 // related to Bitcoin.
@@ -146,5 +146,5 @@ message EncodeAddressRequest {
 // EncodeAddressResponse wraps the output response of EncodeAddress RPC.
 message EncodeAddressResponse {
   // Address serialized from the given public key, using the specified encoding.
-  string address = 2;
+  string address = 1;
 }
