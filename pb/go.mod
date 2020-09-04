@@ -1,3 +1,3 @@
-module github.com/ledgerhq/lama-bitcoin-svc/pb
+module github.com/ledgerhq/bitcoin-svc/pb
 
 go 1.14

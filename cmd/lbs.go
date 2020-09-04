@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net"
 
-	controllers "github.com/ledgerhq/lama-bitcoin-svc/grpc"
-	"github.com/ledgerhq/lama-bitcoin-svc/log"
-	"github.com/ledgerhq/lama-bitcoin-svc/pb/v1"
+	controllers "github.com/ledgerhq/bitcoin-svc/grpc"
+	"github.com/ledgerhq/bitcoin-svc/log"
+	"github.com/ledgerhq/bitcoin-svc/pb/v1"
 	"google.golang.org/grpc"
 )
 

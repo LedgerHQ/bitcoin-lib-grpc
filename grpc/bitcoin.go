@@ -3,8 +3,8 @@ package grpc
 import (
 	"context"
 
-	"github.com/ledgerhq/lama-bitcoin-svc/pb/v1"
-	"github.com/ledgerhq/lama-bitcoin-svc/pkg/bitcoin"
+	"github.com/ledgerhq/bitcoin-svc/pb/v1"
+	"github.com/ledgerhq/bitcoin-svc/pkg/bitcoin"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

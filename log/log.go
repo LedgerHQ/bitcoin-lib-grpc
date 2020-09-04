@@ -3,7 +3,7 @@ package log
 import (
 	"os"
 
-	"github.com/ledgerhq/lama-bitcoin-svc/config"
+	"github.com/ledgerhq/bitcoin-svc/config"
 	"github.com/sirupsen/logrus"
 )
 
