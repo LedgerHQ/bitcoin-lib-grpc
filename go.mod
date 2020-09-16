@@ -1,6 +1,6 @@
 module github.com/ledgerhq/bitcoin-svc
 
-go 1.14
+go 1.15
 
 require (
 	github.com/btcsuite/btcd v0.20.1-beta
