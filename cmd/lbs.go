@@ -8,6 +8,7 @@ import (
 	"github.com/ledgerhq/bitcoin-svc/log"
 	pb "github.com/ledgerhq/bitcoin-svc/pb/bitcoin"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 func serve() {
@@ -21,6 +22,8 @@ func serve() {
 	s := grpc.NewServer()
 	bitcoinController := controllers.NewBitcoinController()
 	pb.RegisterCoinServiceServer(s, bitcoinController)
+
+	reflection.Register(s)
 
 	if err := s.Serve(conn); err != nil {
 		log.Fatalf("Failed to serve: %v", err)
