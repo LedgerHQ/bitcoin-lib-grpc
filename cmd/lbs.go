@@ -6,7 +6,7 @@ import (
 
 	controllers "github.com/ledgerhq/bitcoin-svc/grpc"
 	"github.com/ledgerhq/bitcoin-svc/log"
-	"github.com/ledgerhq/bitcoin-svc/pb/v1"
+	pb "github.com/ledgerhq/bitcoin-svc/pb/bitcoin"
 	"google.golang.org/grpc"
 )
 

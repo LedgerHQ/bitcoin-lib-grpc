@@ -1,7 +1,7 @@
 package grpc
 
 import (
-	"github.com/ledgerhq/bitcoin-svc/pb/v1"
+	pb "github.com/ledgerhq/bitcoin-svc/pb/bitcoin"
 	"github.com/ledgerhq/bitcoin-svc/pkg/bitcoin"
 	"github.com/pkg/errors"
 )

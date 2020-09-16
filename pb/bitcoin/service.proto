@@ -1,7 +1,7 @@
 syntax = "proto3";
 
-package pb.v1;
-option go_package = ".;pb";
+package pb.bitcoin;
+option go_package = ".;bitcoin";
 option java_package = "co.ledger.bitcoin.protobuf";
 
 // CoinService exposes a gRPC interface to wrap protocol-centric logic

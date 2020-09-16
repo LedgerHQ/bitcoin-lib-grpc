@@ -15,7 +15,7 @@ const (
 	ldFlags    = "-X $PACKAGE/version/version.commitHash=$COMMIT_HASH " +
 		"-X $PACKAGE/version/version.buildDate=$BUILD_DATE"
 	protoPlugins  = "plugins=grpc"
-	protoDir      = "pb/v1"
+	protoDir      = "pb/bitcoin"
 	protoFileName = "service.proto"
 )
 
