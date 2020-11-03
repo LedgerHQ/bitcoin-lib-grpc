@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/ledgerhq/bitcoin-svc/config"
+	"github.com/ledgerhq/bitcoin-lib-grpc/config"
 
-	controllers "github.com/ledgerhq/bitcoin-svc/grpc"
-	"github.com/ledgerhq/bitcoin-svc/log"
-	pb "github.com/ledgerhq/bitcoin-svc/pb/bitcoin"
+	controllers "github.com/ledgerhq/bitcoin-lib-grpc/grpc"
+	"github.com/ledgerhq/bitcoin-lib-grpc/log"
+	pb "github.com/ledgerhq/bitcoin-lib-grpc/pb/bitcoin"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
