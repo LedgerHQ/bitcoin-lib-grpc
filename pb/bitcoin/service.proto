@@ -30,6 +30,12 @@ service CoinService {
   // The method also takes in the chain parameters for using network-specific
   // HD version bytes during encoding.
   rpc EncodeAddress(EncodeAddressRequest) returns (EncodeAddressResponse) {}
+
+
+
+  // Create a Transaction
+  // the created transaction is returned to be signed
+  rpc CreateTransaction(UnsignedTransactionRequest) returns (UnsignedTransactionResponse) {}
 }
 
 // BitcoinNetwork enumerates the list of all supported Bitcoin networks. It
@@ -147,4 +153,45 @@ message EncodeAddressRequest {
 message EncodeAddressResponse {
   // Address serialized from the given public key, using the specified encoding.
   string address = 1;
+}
+
+
+// UnsignedTransactionRequest defines the input request passed to CreateTransaction
+// RPC method.
+message UnsignedTransactionRequest {
+  // Lock time during which the transaction cannot be broadcasted
+  uint32 lock_time = 1;
+  // Inputs : UTXOs used to send coins
+  repeated Input inputs = 2;
+  // Outputs : Addresses of the recipients and Amounts send
+  repeated Output outputs = 3;
+  // Network used (Main, Test, Reg...)
+  BitcoinNetwork network = 4;
+}
+
+// UnsignedTransactionResponse defines the output request passed to CreateTransaction
+// RCP method
+message UnsignedTransactionResponse {
+  // This contains the unsigned transaction in HEX format.
+  string hex = 1;
+}
+
+// This is the definition of a transaction input
+message Input {
+  // Hash of the utxo transaction
+  string output_hash = 1;
+  // Index of the utxo in the transaction
+  int32 output_index = 2;
+  // Script used to verify utxo
+  string script = 3;
+  // sequence
+  uint32 sequence = 4;
+}
+
+// This is the definition of a transaction Output
+message Output {
+  // Address of the reciepent
+  string address = 1;
+  // Amount of coins to be sent
+  string value = 2;
 }
