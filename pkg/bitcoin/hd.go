@@ -1,6 +1,8 @@
 package bitcoin
 
 import (
+	"fmt"
+
 	"github.com/btcsuite/btcutil/hdkeychain"
 	"github.com/pkg/errors"
 )
@@ -11,6 +13,12 @@ type PublicKeyMaterial struct {
 	ExtendedKey string
 	PublicKey   []byte
 	ChainCode   []byte
+}
+
+// Keypair contains en extended public key and the corresponding private key
+type Keypair struct {
+	PublicKey  string
+	PrivateKey string
 }
 
 // References:
@@ -62,5 +70,49 @@ func (s *Service) DeriveExtendedKey(
 	response.ExtendedKey = xKey.String()
 	response.PublicKey = pubKey.SerializeCompressed()
 	response.ChainCode = xKey.ChainCode()
+	return response, nil
+}
+
+// Useful service to get keypair (xpub + privKey) from a seed for testing.
+// Random seed is generated if no seed is provided.
+func (s *Service) GetKeypair(seed string, chainParams ChainParams) (Keypair, error) {
+	var (
+		seedBytes []byte
+		response  Keypair
+	)
+
+	if seed == "" {
+		// Generate a random seed at the recommended length.
+		generatedSeed, err := hdkeychain.GenerateSeed(hdkeychain.RecommendedSeedLen)
+		if err != nil {
+			return response, err
+		}
+
+		seedBytes = generatedSeed
+
+	} else {
+		seedBytes = []byte(seed)
+	}
+
+	// Generate a new master node using the seed.
+	masterKey, err := hdkeychain.NewMaster(seedBytes, chainParams)
+	if err != nil {
+		return response, err
+	}
+
+	// Derive the extended key for account 0.
+	// This gives the path: m/0H
+	accountKey, err := masterKey.Child(hdkeychain.HardenedKeyStart + 0)
+	if err != nil {
+		fmt.Println(err)
+		return response, nil
+	}
+
+	// Get the extended public key
+	accountPublicKey, err := accountKey.Neuter()
+
+	response.PublicKey = accountPublicKey.String()
+	response.PrivateKey = accountKey.String()
+
 	return response, nil
 }

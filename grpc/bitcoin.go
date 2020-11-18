@@ -84,7 +84,7 @@ func (c *controller) CreateTransaction(
 	ctx context.Context, txRequest *pb.CreateTransactionRequest,
 ) (*pb.CreateTransactionResponse, error) {
 
-	network, err := BitcoinNetworkParams(txRequest.Network)
+	chainParams, err := BitcoinNetworkParams(txRequest.Network)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
@@ -94,7 +94,7 @@ func (c *controller) CreateTransaction(
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
 
-	rawTx, err := c.svc.CreateTransaction(tx, network)
+	rawTx, err := c.svc.CreateTransaction(tx, chainParams)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
@@ -104,6 +104,26 @@ func (c *controller) CreateTransaction(
 		Hash:        rawTx.Hash,
 		WitnessHash: rawTx.WitnessHash,
 	}
+
+	return &response, nil
+}
+
+func (c *controller) GetKeypair(
+	ctx context.Context, request *pb.GetKeypairRequest,
+) (*pb.GetKeypairResponse, error) {
+
+	chainParams, err := BitcoinNetworkParams(request.Network)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, err.Error())
+	}
+
+	keypair, err := c.svc.GetKeypair(request.Seed, chainParams)
+
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
+	response := pb.GetKeypairResponse{PublicKey: keypair.PublicKey, PrivateKey: keypair.PrivateKey}
 
 	return &response, nil
 }

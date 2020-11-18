@@ -130,6 +130,7 @@ func TestDeriveExtendedKey(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := s.DeriveExtendedKey(tt.key, tt.derivation)
+
 			if err != nil && tt.wantErr == nil {
 				t.Fatalf("DeriveExtendedKey() unexpected error: %v", err)
 			}
@@ -146,6 +147,53 @@ func TestDeriveExtendedKey(t *testing.T) {
 
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Fatalf("DeriveExtendedKey() got error '%v', want '%v'",
+					got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGetKeypair(t *testing.T) {
+	tests := []struct {
+		name        string
+		seed        string
+		chainParams ChainParams
+		want        Keypair
+		wantErr     error
+	}{
+		{
+			name:        "Get keypair from a seed",
+			seed:        "I am the Lama from Lama land",
+			chainParams: Mainnet,
+			want: Keypair{
+				PublicKey:  "xpub67tYFtLfPv9fLpt7Hd5Pkc2LExzG11LyHmME7PiMWUxePZ3ZywEjxz9USiFjMAHrYpLMGHuZ8CgG4zJY2usWnrroT29sYgUuYQecmjt6bkS",
+				PrivateKey: "xprv9tuBrNomZYbN8LoeBbYPPU5bgw9mbYd7vYRdK1Jjx9RfWkiRSPvVRBpzbRdZSVTfPoJhV3LR7Ui6nf5QEz7QqxwNLZzYbU8zwLSjpXYZrCu",
+			},
+		},
+	}
+
+	s := &Service{}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := s.GetKeypair(tt.seed, tt.chainParams)
+
+			if err != nil && tt.wantErr == nil {
+				t.Fatalf("GetKeypair() unexpected error: %v", err)
+			}
+
+			if err == nil && tt.wantErr != nil {
+				t.Fatalf("GetKeypair() got no error, want '%v'",
+					tt.wantErr)
+			}
+
+			if err != nil && tt.wantErr.Error() != errors.Cause(err).Error() {
+				t.Fatalf("GetKeypair() got error '%v', want '%v'",
+					err, tt.wantErr)
+			}
+
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Fatalf("GetKeypair() got error '%v', want '%v'",
 					got, tt.want)
 			}
 		})
