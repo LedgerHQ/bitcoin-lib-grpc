@@ -34,6 +34,10 @@ service CoinService {
   // Create a Transaction
   // the created transaction is returned to be signed
   rpc CreateTransaction(CreateTransactionRequest) returns (CreateTransactionResponse) {}
+
+    // GetKeypair accepts an optional seed and a bitcoin network 
+  // and returns a keypair of extended public key / private key.
+  rpc GetKeypair(GetKeypairRequest) returns (GetKeypairResponse) {}
 }
 
 // BitcoinNetwork enumerates the list of all supported Bitcoin networks. It
@@ -203,4 +207,18 @@ message Output {
   string address = 1;
   // Amount of coins to be sent
   string value = 2;
+}
+
+message GetKeypairRequest {
+  // Optional seed
+  string seed = 1;
+  // Network used (Main, Test, Reg...)
+  BitcoinNetwork network = 2;
+}
+
+message GetKeypairResponse {
+  // Extended public key
+  string public_key = 1;
+  // Private key
+  string private_key = 2;
 }
