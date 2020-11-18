@@ -63,7 +63,7 @@ func Tx(txProto *pb.UnsignedTransactionRequest) (*bitcoin.Tx, error) {
 			OutputHash:  inputProto.OutputHash,
 			OutputIndex: uint32(inputProto.OutputIndex),
 			Script:      inputProto.Script,
-			Sequence:    inputProto.Sequence,
+			Sequence:    uint32(inputProto.Sequence),
 		})
 	}
 
@@ -84,6 +84,6 @@ func Tx(txProto *pb.UnsignedTransactionRequest) (*bitcoin.Tx, error) {
 	return &bitcoin.Tx{
 		Inputs:   inputs,
 		Outputs:  outputs,
-		LockTime: txProto.LockTime,
+		LockTime: uint32(txProto.LockTime),
 	}, nil
 }

@@ -160,7 +160,7 @@ message EncodeAddressResponse {
 // RPC method.
 message UnsignedTransactionRequest {
   // Lock time during which the transaction cannot be broadcasted
-  uint32 lock_time = 1;
+  int64 lock_time = 1;
   // Inputs : UTXOs used to send coins
   repeated Input inputs = 2;
   // Outputs : Addresses of the recipients and Amounts send
@@ -185,7 +185,7 @@ message Input {
   // Script used to verify utxo
   string script = 3;
   // sequence
-  uint32 sequence = 4;
+  int64 sequence = 4;
 }
 
 // This is the definition of a transaction Output
