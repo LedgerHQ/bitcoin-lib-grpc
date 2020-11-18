@@ -1,8 +1,6 @@
 package bitcoin
 
 import (
-	"fmt"
-
 	"github.com/btcsuite/btcutil/hdkeychain"
 	"github.com/pkg/errors"
 )
@@ -54,7 +52,7 @@ func (s *Service) DeriveExtendedKey(
 	// Derive len(request.Derivation) HD levels, starting from extendedKey
 	// as the parent node.
 	for _, childIndex := range derivation {
-		xKey, err = xKey.Child(childIndex)
+		xKey, err = xKey.Derive(childIndex)
 		if err != nil {
 			return response, errors.Wrapf(err, "failed to derive xkey %s at index %d",
 				extendedKey, childIndex)
@@ -102,9 +100,8 @@ func (s *Service) GetKeypair(seed string, chainParams ChainParams) (Keypair, err
 
 	// Derive the extended key for account 0.
 	// This gives the path: m/0H
-	accountKey, err := masterKey.Child(hdkeychain.HardenedKeyStart + 0)
+	accountKey, err := masterKey.Derive(hdkeychain.HardenedKeyStart + 0)
 	if err != nil {
-		fmt.Println(err)
 		return response, nil
 	}
 
