@@ -82,8 +82,8 @@ func Tx(txProto *pb.CreateTransactionRequest) (*bitcoin.Tx, error) {
 	}
 
 	return &bitcoin.Tx{
-		Inputs:   inputs,
-		Recipients:  recipients,
-		LockTime: txProto.LockTime,
+		Inputs:     inputs,
+		Recipients: recipients,
+		LockTime:   txProto.LockTime,
 	}, nil
 }

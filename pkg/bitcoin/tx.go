@@ -23,9 +23,9 @@ type Recipient struct {
 }
 
 type Tx struct {
-	Inputs   []UnsignedInput
-	Recipients  []Recipient
-	LockTime uint32
+	Inputs     []UnsignedInput
+	Recipients []Recipient
+	LockTime   uint32
 }
 
 // RawTx represents the serialized transaction encoded using legacy encoding
