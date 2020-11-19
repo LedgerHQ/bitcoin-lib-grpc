@@ -31,11 +31,9 @@ service CoinService {
   // HD version bytes during encoding.
   rpc EncodeAddress(EncodeAddressRequest) returns (EncodeAddressResponse) {}
 
-
-
   // Create a Transaction
   // the created transaction is returned to be signed
-  rpc CreateTransaction(UnsignedTransactionRequest) returns (UnsignedTransactionResponse) {}
+  rpc CreateTransaction(CreateTransactionRequest) returns (CreateTransactionResponse) {}
 }
 
 // BitcoinNetwork enumerates the list of all supported Bitcoin networks. It
@@ -156,9 +154,9 @@ message EncodeAddressResponse {
 }
 
 
-// UnsignedTransactionRequest defines the input request passed to CreateTransaction
-// RPC method.
-message UnsignedTransactionRequest {
+// CreateTransactionRequest defines the input request passed to the
+// CreateTransaction RPC method.
+message CreateTransactionRequest {
   // Lock time during which the transaction cannot be broadcasted
   uint32 lock_time = 1;
   // Inputs : UTXOs used to send coins
@@ -169,11 +167,22 @@ message UnsignedTransactionRequest {
   BitcoinNetwork network = 4;
 }
 
-// UnsignedTransactionResponse defines the output request passed to CreateTransaction
-// RCP method
-message UnsignedTransactionResponse {
-  // This contains the unsigned transaction in HEX format.
+// CreateTransactionResponse defines the output response passed to the
+// CreateTransaction RCP method.
+message CreateTransactionResponse {
+  // hex contains the unsigned transaction serialized according to bitcoin
+  // encoding.
   string hex = 1;
+
+  // hash contains the transaction hash, which is computed by doing a
+  // double-SHA256 on the encoded transaction.
+  string hash = 2;
+
+  // witness_hash contains hash of the transaction, that is encoded according to
+  // the BIP144 Witness serialization rules.
+  //
+  // Same as hash if no witness is present.
+  string witness_hash = 3;
 }
 
 // This is the definition of a transaction input
