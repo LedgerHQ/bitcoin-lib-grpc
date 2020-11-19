@@ -31,13 +31,20 @@ service CoinService {
   // HD version bytes during encoding.
   rpc EncodeAddress(EncodeAddressRequest) returns (EncodeAddressResponse) {}
 
-  // Create a Transaction
-  // the created transaction is returned to be signed
-  rpc CreateTransaction(CreateTransactionRequest) returns (CreateTransactionResponse) {}
+  // CreateTransaction prepares a transaction and returns a raw tx in order to be signed.
+  rpc CreateTransaction(CreateTransactionRequest) returns (RawTransactionResponse) {}
 
-    // GetKeypair accepts an optional seed and a bitcoin network 
+  // GetKeypair accepts an optional seed and a bitcoin network 
   // and returns a keypair of extended public key / private key.
   rpc GetKeypair(GetKeypairRequest) returns (GetKeypairResponse) {}
+
+  // GenerateDerSignatures 
+  rpc GenerateDerSignatures(GenerateDerSignaturesRequest) returns (GenerateDerSignaturesResponse) {}
+
+  // SignTransaction takes a raw tx and DER signatures,
+  // then compute scripts for all inputs.
+  // It returns the raw tx signed in order to be broadcasted.
+  rpc SignTransaction(SignTransactionRequest) returns (RawTransactionResponse) {}
 }
 
 // BitcoinNetwork enumerates the list of all supported Bitcoin networks. It
@@ -171,9 +178,8 @@ message CreateTransactionRequest {
   BitcoinNetwork network = 4;
 }
 
-// CreateTransactionResponse defines the output response passed to the
-// CreateTransaction RCP method.
-message CreateTransactionResponse {
+// RawTransactionResponse defines the builded raw tx.
+message RawTransactionResponse {
   // hex contains the unsigned transaction serialized according to bitcoin
   // encoding.
   string hex = 1;
@@ -195,10 +201,6 @@ message Input {
   string output_hash = 1;
   // Index of the utxo in the transaction
   int32 output_index = 2;
-  // Script used to verify utxo
-  string script = 3;
-  // sequence
-  uint32 sequence = 4;
 }
 
 // This is the definition of a transaction Output
@@ -223,4 +225,44 @@ message GetKeypairResponse {
   string extended_public_key = 1;
   // Private key
   string private_key = 2;
+}
+
+message Utxo {
+  // Output script
+  bytes script = 1;
+  // Output value
+  string value = 2;
+  // Derivation path
+  repeated uint32 derivation = 3;
+}
+
+message GenerateDerSignaturesRequest {
+  // Unsigned raw tx
+  RawTransactionResponse raw_tx = 1;
+  // Utxos
+  repeated Utxo utxos = 2;
+  // Master private key
+  string private_key = 3;
+}
+
+message GenerateDerSignaturesResponse {
+  repeated bytes der_signatures = 1;
+}
+
+message SignTransactionRequest {
+  // Unsigned raw tx
+  RawTransactionResponse raw_tx = 1;
+  // Network used (Main, Test, Reg...)
+  BitcoinNetwork network = 2;
+  // Signatures metadata
+  repeated SignatureMetadata signatures = 3;
+}
+
+message SignatureMetadata {
+  // Der signature
+  bytes der_signature = 1;
+  // Input pub key
+  string public_key = 2;
+  // Input Address encoding
+  AddressEncoding addr_encoding = 3;
 }

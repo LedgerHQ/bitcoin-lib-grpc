@@ -82,7 +82,7 @@ func (c *controller) DeriveExtendedKey(
 
 func (c *controller) CreateTransaction(
 	ctx context.Context, txRequest *pb.CreateTransactionRequest,
-) (*pb.CreateTransactionResponse, error) {
+) (*pb.RawTransactionResponse, error) {
 
 	chainParams, err := BitcoinNetworkParams(txRequest.Network)
 	if err != nil {
@@ -99,7 +99,7 @@ func (c *controller) CreateTransaction(
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
-	response := pb.CreateTransactionResponse{
+	response := pb.RawTransactionResponse{
 		Hex:         rawTx.Hex,
 		Hash:        rawTx.Hash,
 		WitnessHash: rawTx.WitnessHash,
@@ -124,6 +124,74 @@ func (c *controller) GetKeypair(
 	}
 
 	response := pb.GetKeypairResponse{ExtendedPublicKey: keypair.ExtendedPublicKey, PrivateKey: keypair.PrivateKey}
+
+	return &response, nil
+}
+
+func (c *controller) GenerateDerSignatures(
+	ctx context.Context, request *pb.GenerateDerSignaturesRequest,
+) (*pb.GenerateDerSignaturesResponse, error) {
+
+	rawTx := RawTx(request.RawTx)
+
+	var utxos []bitcoin.Utxo
+	for idx, utxoProto := range request.Utxos {
+		utxo, err := Utxo(utxoProto)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, err.Error())
+		}
+		utxos[idx] = *utxo
+	}
+
+	msgTx, err := c.svc.DeserializeMsgTx(rawTx)
+	if err != nil {
+		return nil, err
+	}
+
+	derSignatures, err := c.svc.GenerateDerSignatures(msgTx, utxos, request.PrivateKey)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
+	return &pb.GenerateDerSignaturesResponse{DerSignatures: derSignatures}, nil
+}
+
+func (c *controller) SignTransaction(
+	ctx context.Context, request *pb.SignTransactionRequest,
+) (*pb.RawTransactionResponse, error) {
+
+	chainParams, err := BitcoinNetworkParams(request.Network)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
+	rawTx := RawTx(request.RawTx)
+
+	var signatures []bitcoin.SignatureMetadata
+
+	for idx, signature := range request.Signatures {
+		sigMetadata, err := SignatureMetadata(signature, chainParams)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, err.Error())
+		}
+		signatures[idx] = *sigMetadata
+	}
+
+	msgTx, err := c.svc.DeserializeMsgTx(rawTx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
+	signedRawTx, err := c.svc.SignTransaction(msgTx, chainParams, signatures)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
+	response := pb.RawTransactionResponse{
+		Hex:         signedRawTx.Hex,
+		Hash:        signedRawTx.Hash,
+		WitnessHash: signedRawTx.WitnessHash,
+	}
 
 	return &response, nil
 }
