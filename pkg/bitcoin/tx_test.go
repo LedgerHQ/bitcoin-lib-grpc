@@ -15,7 +15,7 @@ func TestCreateTransaction(t *testing.T) {
 			name: "mainnet P2WPKH",
 			tx: &Tx{
 				LockTime: 0,
-				Inputs: []Input{
+				Inputs: []UnsignedInput{
 					{
 						OutputHash:  "2f5dae23c2e18588c86cfc4e154f3b68bd8eb4265fe0b4b1341ad5aa40422f66",
 						OutputIndex: 1,
@@ -23,7 +23,7 @@ func TestCreateTransaction(t *testing.T) {
 						Sequence:    16777215,
 					},
 				},
-				Outputs: []Output{
+				Recipients: []Recipient{
 					{
 						Address: "1MZbRqZGpiSWGRLg8DUdVrDKHwNe1oesUZ",
 						Value:   100000,

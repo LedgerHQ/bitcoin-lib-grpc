@@ -57,9 +57,9 @@ func BitcoinAddressEncoding(encoding pb.AddressEncoding) (bitcoin.AddressEncodin
 // Tx is an adapter function to build a *bitcoin.Tx object from a gRPC message.
 // It also converts raw gRPC values to a format that is acceptable to btcd.
 func Tx(txProto *pb.CreateTransactionRequest) (*bitcoin.Tx, error) {
-	var inputs []bitcoin.Input
+	var inputs []bitcoin.UnsignedInput
 	for _, inputProto := range txProto.Inputs {
-		inputs = append(inputs, bitcoin.Input{
+		inputs = append(inputs, bitcoin.UnsignedInput{
 			OutputHash:  inputProto.OutputHash,
 			OutputIndex: uint32(inputProto.OutputIndex),
 			Script:      inputProto.Script,
@@ -67,23 +67,23 @@ func Tx(txProto *pb.CreateTransactionRequest) (*bitcoin.Tx, error) {
 		})
 	}
 
-	var outputs []bitcoin.Output
-	for _, outputProto := range txProto.Outputs {
-		value, err := strconv.ParseInt(outputProto.Value, 10, 64)
+	var recipients []bitcoin.Recipient
+	for _, recipientProto := range txProto.Recipients {
+		value, err := strconv.ParseInt(recipientProto.Value, 10, 64)
 		if err != nil {
 			return nil, errors.Wrapf(err,
-				"invalid output value: %s", outputProto.Value)
+				"invalid recipient value: %s", recipientProto.Value)
 		}
 
-		outputs = append(outputs, bitcoin.Output{
-			Address: outputProto.Address,
+		recipients = append(recipients, bitcoin.Recipient{
+			Address: recipientProto.Address,
 			Value:   value,
 		})
 	}
 
 	return &bitcoin.Tx{
 		Inputs:   inputs,
-		Outputs:  outputs,
+		Recipients:  recipients,
 		LockTime: txProto.LockTime,
 	}, nil
 }

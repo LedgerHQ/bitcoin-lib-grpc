@@ -10,21 +10,21 @@ import (
 	"github.com/btcsuite/btcutil"
 )
 
-type Input struct {
+type UnsignedInput struct {
 	OutputHash  string
 	OutputIndex uint32
 	Script      string
 	Sequence    uint32
 }
 
-type Output struct {
+type Recipient struct {
 	Address string
 	Value   int64
 }
 
 type Tx struct {
-	Inputs   []Input
-	Outputs  []Output
+	Inputs   []UnsignedInput
+	Recipients  []Recipient
 	LockTime uint32
 }
 
@@ -62,9 +62,9 @@ func (s *Service) CreateTransaction(tx *Tx, chainParams ChainParams) (*RawTx, er
 		msgTx.AddTxIn(txIn)
 	}
 
-	for _, output := range tx.Outputs {
+	for _, recipient := range tx.Recipients {
 		// Guess Address Type from address string
-		address, err := btcutil.DecodeAddress(output.Address, chainParams)
+		address, err := btcutil.DecodeAddress(recipient.Address, chainParams)
 		if err != nil {
 			return nil, err
 		}
@@ -76,7 +76,7 @@ func (s *Service) CreateTransaction(tx *Tx, chainParams ChainParams) (*RawTx, er
 		}
 
 		// Create Output from value and script
-		txOut := wire.NewTxOut(output.Value, script)
+		txOut := wire.NewTxOut(recipient.Value, script)
 
 		// Add Output to btcd Transaction
 		msgTx.AddTxOut(txOut)

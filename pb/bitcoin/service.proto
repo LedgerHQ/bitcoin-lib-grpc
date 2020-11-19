@@ -164,9 +164,9 @@ message CreateTransactionRequest {
   // Lock time during which the transaction cannot be broadcasted
   uint32 lock_time = 1;
   // Inputs : UTXOs used to send coins
-  repeated Input inputs = 2;
-  // Outputs : Addresses of the recipients and Amounts send
-  repeated Output outputs = 3;
+  repeated UnsignedInput inputs = 2;
+  // Recipients : Addresses of the recipients and Amounts send
+  repeated Recipient recipients = 3;
   // Network used (Main, Test, Reg...)
   BitcoinNetwork network = 4;
 }
@@ -190,7 +190,7 @@ message CreateTransactionResponse {
 }
 
 // This is the definition of a transaction input
-message Input {
+message UnsignedInput {
   // Hash of the utxo transaction
   string output_hash = 1;
   // Index of the utxo in the transaction
@@ -202,7 +202,7 @@ message Input {
 }
 
 // This is the definition of a transaction Output
-message Output {
+message Recipient {
   // Address of the reciepent
   string address = 1;
   // Amount of coins to be sent
