@@ -1,9 +1,7 @@
 package grpc
 
 import (
-	"bytes"
 	"context"
-	"encoding/hex"
 
 	pb "github.com/ledgerhq/bitcoin-lib-grpc/pb/bitcoin"
 	"github.com/ledgerhq/bitcoin-lib-grpc/pkg/bitcoin"
@@ -83,8 +81,8 @@ func (c *controller) DeriveExtendedKey(
 }
 
 func (c *controller) CreateTransaction(
-	ctx context.Context, txRequest *pb.UnsignedTransactionRequest,
-) (*pb.UnsignedTransactionResponse, error) {
+	ctx context.Context, txRequest *pb.CreateTransactionRequest,
+) (*pb.CreateTransactionResponse, error) {
 
 	network, err := BitcoinNetworkParams(txRequest.Network)
 	if err != nil {
@@ -96,13 +94,16 @@ func (c *controller) CreateTransaction(
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
 
-	var buf bytes.Buffer
-
-	if err := c.svc.CreateTransaction(&buf, tx, network); err != nil {
+	rawTx, err := c.svc.CreateTransaction(tx, network)
+	if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
-	response := pb.UnsignedTransactionResponse{Hex: hex.EncodeToString(buf.Bytes())}
+	response := pb.CreateTransactionResponse{
+		Hex:         rawTx.Hex,
+		Hash:        rawTx.Hash,
+		WitnessHash: rawTx.WitnessHash,
+	}
 
 	return &response, nil
 }

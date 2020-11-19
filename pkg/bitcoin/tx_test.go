@@ -1,7 +1,6 @@
 package bitcoin
 
 import (
-	"bytes"
 	"testing"
 )
 
@@ -39,15 +38,16 @@ func TestCreateTransaction(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
-			var buf bytes.Buffer
-
-			err := s.CreateTransaction(&buf, tt.tx, tt.net)
+			tx, err := s.CreateTransaction(tt.tx, tt.net)
 			if err != nil && tt.wantErr == nil {
 				t.Fatalf("CreateTransaction() got error '%v'", err)
 			}
 
-			if buf.Len() == 0 {
+			if tx == nil {
+				t.Fatalf("CreateTransaction() got nil response")
+			}
+
+			if len(tx.Hex) == 0 {
 				t.Fatalf("Created Transaction is empty")
 			}
 		})

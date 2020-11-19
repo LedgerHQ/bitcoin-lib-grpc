@@ -2,6 +2,7 @@ package bitcoin
 
 import (
 	"bytes"
+	"encoding/hex"
 
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/txscript"
@@ -27,7 +28,17 @@ type Tx struct {
 	LockTime uint32
 }
 
-func (s *Service) CreateTransaction(buf *bytes.Buffer, tx *Tx, chainParams ChainParams) error {
+// RawTx represents the serialized transaction encoded using legacy encoding
+// of BIP144 Segregated Witness encoding.
+//
+// Hash and WitnessHash are the same if transaction has no witness data.
+type RawTx struct {
+	Hex         string
+	Hash        string
+	WitnessHash string
+}
+
+func (s *Service) CreateTransaction(tx *Tx, chainParams ChainParams) (*RawTx, error) {
 	// Create a new btcd transaction
 	msgTx := wire.NewMsgTx(wire.TxVersion)
 
@@ -35,7 +46,7 @@ func (s *Service) CreateTransaction(buf *bytes.Buffer, tx *Tx, chainParams Chain
 		// hash string to hash byteArray
 		outputHash, err := chainhash.NewHashFromStr(input.OutputHash)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		// Outpoint = hash + index
@@ -55,13 +66,13 @@ func (s *Service) CreateTransaction(buf *bytes.Buffer, tx *Tx, chainParams Chain
 		// Guess Address Type from address string
 		address, err := btcutil.DecodeAddress(output.Address, chainParams)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		// Create a public key script that pays to the address depending on the address type.
 		script, err := txscript.PayToAddrScript(address)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		// Create Output from value and script
@@ -75,5 +86,14 @@ func (s *Service) CreateTransaction(buf *bytes.Buffer, tx *Tx, chainParams Chain
 	msgTx.LockTime = tx.LockTime
 
 	// Encode transaction in Hexadecimal
-	return msgTx.BtcEncode(buf, wire.ProtocolVersion, wire.WitnessEncoding)
+	var buf bytes.Buffer
+	if err := msgTx.BtcEncode(&buf, wire.ProtocolVersion, wire.WitnessEncoding); err != nil {
+		return nil, err
+	}
+
+	return &RawTx{
+		Hex:         hex.EncodeToString(buf.Bytes()),
+		Hash:        msgTx.TxHash().String(),
+		WitnessHash: msgTx.WitnessHash().String(),
+	}, nil
 }

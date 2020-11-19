@@ -56,7 +56,7 @@ func BitcoinAddressEncoding(encoding pb.AddressEncoding) (bitcoin.AddressEncodin
 
 // Tx is an adapter function to build a *bitcoin.Tx object from a gRPC message.
 // It also converts raw gRPC values to a format that is acceptable to btcd.
-func Tx(txProto *pb.UnsignedTransactionRequest) (*bitcoin.Tx, error) {
+func Tx(txProto *pb.CreateTransactionRequest) (*bitcoin.Tx, error) {
 	var inputs []bitcoin.Input
 	for _, inputProto := range txProto.Inputs {
 		inputs = append(inputs, bitcoin.Input{
