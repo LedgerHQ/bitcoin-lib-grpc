@@ -117,13 +117,13 @@ func (c *controller) GetKeypair(
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
 
-	keypair, err := c.svc.GetKeypair(request.Seed, chainParams)
+	keypair, err := c.svc.GetKeypair(request.Seed, chainParams, request.Derivation)
 
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
-	response := pb.GetKeypairResponse{PublicKey: keypair.PublicKey, PrivateKey: keypair.PrivateKey}
+	response := pb.GetKeypairResponse{ExtendedPublicKey: keypair.ExtendedPublicKey, PrivateKey: keypair.PrivateKey}
 
 	return &response, nil
 }

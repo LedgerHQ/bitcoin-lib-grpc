@@ -214,11 +214,13 @@ message GetKeypairRequest {
   string seed = 1;
   // Network used (Main, Test, Reg...)
   BitcoinNetwork network = 2;
+  // Derivation path
+  repeated uint32 derivation = 3;
 }
 
 message GetKeypairResponse {
   // Extended public key
-  string public_key = 1;
+  string extended_public_key = 1;
   // Private key
   string private_key = 2;
 }

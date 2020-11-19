@@ -15,8 +15,8 @@ type PublicKeyMaterial struct {
 
 // Keypair contains en extended public key and the corresponding private key
 type Keypair struct {
-	PublicKey  string
-	PrivateKey string
+	ExtendedPublicKey string
+	PrivateKey        string
 }
 
 // References:
@@ -73,7 +73,7 @@ func (s *Service) DeriveExtendedKey(
 
 // Useful service to get keypair (xpub + privKey) from a seed for testing.
 // Random seed is generated if no seed is provided.
-func (s *Service) GetKeypair(seed string, chainParams ChainParams) (Keypair, error) {
+func (s *Service) GetKeypair(seed string, chainParams ChainParams, derivation []uint32) (Keypair, error) {
 	var (
 		seedBytes []byte
 		response  Keypair
@@ -93,23 +93,25 @@ func (s *Service) GetKeypair(seed string, chainParams ChainParams) (Keypair, err
 	}
 
 	// Generate a new master node using the seed.
-	masterKey, err := hdkeychain.NewMaster(seedBytes, chainParams)
+	extendedKey, err := hdkeychain.NewMaster(seedBytes, chainParams)
 	if err != nil {
 		return response, err
 	}
 
-	// Derive the extended key for account 0.
-	// This gives the path: m/0H
-	accountKey, err := masterKey.Derive(hdkeychain.HardenedKeyStart + 0)
-	if err != nil {
-		return response, nil
+	// Derive the extended key for given derivation path
+	for _, childIndex := range derivation {
+		extendedKey, err = extendedKey.Derive(childIndex)
+		if err != nil {
+			return response, errors.Wrapf(err, "failed to derive extendedKey %s at index %d",
+				extendedKey, childIndex)
+		}
 	}
 
-	// Get the extended public key
-	accountPublicKey, err := accountKey.Neuter()
+	// Get the humand readable extended public key
+	accountExtendedPublicKey, err := extendedKey.Neuter()
 
-	response.PublicKey = accountPublicKey.String()
-	response.PrivateKey = accountKey.String()
+	response.ExtendedPublicKey = accountExtendedPublicKey.String()
+	response.PrivateKey = extendedKey.String()
 
 	return response, nil
 }
