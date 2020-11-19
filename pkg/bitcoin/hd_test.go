@@ -158,6 +158,7 @@ func TestGetKeypair(t *testing.T) {
 		name        string
 		seed        string
 		chainParams ChainParams
+		derivation  []uint32
 		want        Keypair
 		wantErr     error
 	}{
@@ -165,9 +166,10 @@ func TestGetKeypair(t *testing.T) {
 			name:        "Get keypair from a seed",
 			seed:        "I am the Lama from Lama land",
 			chainParams: Mainnet,
+			derivation:  []uint32{44 + h, 0 + h, 0 + h},
 			want: Keypair{
-				PublicKey:  "xpub67tYFtLfPv9fLpt7Hd5Pkc2LExzG11LyHmME7PiMWUxePZ3ZywEjxz9USiFjMAHrYpLMGHuZ8CgG4zJY2usWnrroT29sYgUuYQecmjt6bkS",
-				PrivateKey: "xprv9tuBrNomZYbN8LoeBbYPPU5bgw9mbYd7vYRdK1Jjx9RfWkiRSPvVRBpzbRdZSVTfPoJhV3LR7Ui6nf5QEz7QqxwNLZzYbU8zwLSjpXYZrCu",
+				ExtendedPublicKey: "xpub6CuV4qnYG4mQb6Q4qHy4dnovUzrt9PXGzA9v7yPjYeTKuQjACFXCFQbkFfvCTz8WsR3ggq7MaNDkwLjvoy6FZby3rZ9PLNGy51rVFdmwhrZ",
+				PrivateKey:        "xprv9yv8fLFeRhD7NcKbjGS4GesBvy2PjvoRcwEKKaz7zJvM2cQ1eiCwhcHGQNEBwsXthHbPtZNQg5SBBEWS1QH941SKitBdaUT7VDTxzdS8vu7",
 			},
 		},
 	}
@@ -176,7 +178,7 @@ func TestGetKeypair(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := s.GetKeypair(tt.seed, tt.chainParams)
+			got, err := s.GetKeypair(tt.seed, tt.chainParams, tt.derivation)
 
 			if err != nil && tt.wantErr == nil {
 				t.Fatalf("GetKeypair() unexpected error: %v", err)
