@@ -10,6 +10,7 @@ import (
 	"github.com/ledgerhq/bitcoin-lib-grpc/log"
 	pb "github.com/ledgerhq/bitcoin-lib-grpc/pb/bitcoin"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -21,7 +22,10 @@ func serve(addr string) {
 
 	s := grpc.NewServer()
 	bitcoinController := controllers.NewBitcoinController()
+	healthController := controllers.NewHealthChecker()
+
 	pb.RegisterCoinServiceServer(s, bitcoinController)
+	grpc_health_v1.RegisterHealthServer(s, healthController)
 
 	reflection.Register(s)
 
