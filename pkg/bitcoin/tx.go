@@ -110,12 +110,7 @@ func (s *Service) CreateTransaction(tx *Tx, chainParams ChainParams) (*RawTx, er
 	msgTx.LockTime = tx.LockTime
 
 	// Encode MsgTx to RawTx
-	rawTx, err := encodeMsgTx(msgTx)
-	if err != nil {
-		return nil, err
-	}
-
-	return rawTx, nil
+	return encodeMsgTx(msgTx)
 }
 
 func (s *Service) GenerateDerSignatures(msgTx *wire.MsgTx, utxos []Utxo, privKey string) ([]DerSignature, error) {
