@@ -10,12 +10,17 @@ import (
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
 	"github.com/btcsuite/btcutil/hdkeychain"
+	"github.com/btcsuite/btcwallet/wallet/txauthor"
+	"github.com/btcsuite/btcwallet/wallet/txrules"
+	"github.com/btcsuite/btcwallet/wallet/txsizes"
 	"github.com/pkg/errors"
 )
 
 type Input struct {
 	OutputHash  string
 	OutputIndex uint32
+	Script      []byte
+	Value       int64
 }
 
 type Output struct {
@@ -24,9 +29,11 @@ type Output struct {
 }
 
 type Tx struct {
-	Inputs   []Input
-	Outputs  []Output
-	LockTime uint32
+	Inputs        []Input
+	Outputs       []Output
+	ChangeAddress string
+	FeeSatPerKb   int64
+	LockTime      uint32
 }
 
 // RawTx represents the serialized transaction encoded using legacy encoding
@@ -34,9 +41,14 @@ type Tx struct {
 //
 // Hash and WitnessHash are the same if transaction has no witness data.
 type RawTx struct {
-	Hex         string
-	Hash        string
-	WitnessHash string
+	Hex           string
+	Hash          string
+	WitnessHash   string
+	NotEnoughUtxo *NotEnoughUtxo
+}
+
+type NotEnoughUtxo struct {
+	MissingAmount int64
 }
 
 type DerSignature = []byte
@@ -54,6 +66,8 @@ type SignatureMetadata struct {
 }
 
 func (s *Service) CreateTransaction(tx *Tx, chainParams ChainParams) (*RawTx, error) {
+	var inputAmount, targetAmount int64
+
 	// Create a new btcd transaction
 	msgTx := wire.NewMsgTx(wire.TxVersion)
 
@@ -76,6 +90,8 @@ func (s *Service) CreateTransaction(tx *Tx, chainParams ChainParams) (*RawTx, er
 
 		// Add TxIn to MsgTx
 		msgTx.AddTxIn(txIn)
+
+		inputAmount = inputAmount + input.Value
 	}
 
 	// For each output to send, add a TxOut
@@ -104,7 +120,51 @@ func (s *Service) CreateTransaction(tx *Tx, chainParams ChainParams) (*RawTx, er
 
 		// Add TxOut to MsgTx
 		msgTx.AddTxOut(txOut)
+
+		// Calculate target amount
+		targetAmount = targetAmount + output.Value
 	}
+
+	// Decode change address from string
+	changeAddress, err := btcutil.DecodeAddress(tx.ChangeAddress, chainParams)
+	if err != nil {
+		return nil, errors.Wrapf(err,
+			"failed to decode address from change address %v",
+			tx.ChangeAddress,
+		)
+	}
+
+	// Compute change script
+	changeScript, err := txscript.PayToAddrScript(changeAddress)
+	if err != nil {
+		return nil, errors.Wrapf(err,
+			"failed to build 'pay to' script from change address %v",
+			tx.ChangeAddress,
+		)
+	}
+
+	// Estimate fee without change
+	var txOutsWithEstimatedChange []*wire.TxOut
+	maxRequiredFee := getMaxRequiredFee(msgTx.TxOut, nil, tx.FeeSatPerKb)
+	changeAmount := inputAmount - targetAmount - maxRequiredFee
+	changeTxOut := wire.NewTxOut(changeAmount, changeScript)
+	txOutsWithEstimatedChange = append(msgTx.TxOut, changeTxOut)
+
+	// Esimate fee with change
+	maxRequiredFee = getMaxRequiredFee(txOutsWithEstimatedChange, nil, tx.FeeSatPerKb)
+	changeAmount = inputAmount - targetAmount - maxRequiredFee
+	changeTxOut = wire.NewTxOut(changeAmount, changeScript)
+
+	// Not enough utxos to pay fees
+	if changeAmount < 0 {
+		return &RawTx{NotEnoughUtxo: &NotEnoughUtxo{maxRequiredFee}}, nil
+	}
+
+	// Add change output to TxOut arrays
+	msgTx.TxOut = append(msgTx.TxOut, changeTxOut)
+
+	// Randomize change output position
+	txauthor.RandomizeOutputPosition(msgTx.TxOut, len(msgTx.TxOut)-1)
 
 	// Add LockTime
 	msgTx.LockTime = tx.LockTime
@@ -281,4 +341,27 @@ func (s *Service) DeserializeMsgTx(rawTx *RawTx) (*wire.MsgTx, error) {
 	msgTx.Deserialize(reader)
 
 	return msgTx, nil
+}
+
+func getMaxRequiredFee(outputs []*wire.TxOut, utxoScripts [][]byte, feeSatPerKb int64) int64 {
+	// We count the types of utxos to spend, which we'll use to estimate
+	// the vsize of the transaction.
+	var nested, p2wpkh, p2pkh int
+	for _, script := range utxoScripts {
+		switch {
+		// If this is a p2sh output, we assume this is a
+		// nested P2WKH.
+		case txscript.IsPayToScriptHash(script):
+			nested++
+		case txscript.IsPayToWitnessPubKeyHash(script):
+			p2wpkh++
+		default:
+			p2pkh++
+		}
+	}
+
+	maxSignedSize := txsizes.EstimateVirtualSize(p2pkh, p2wpkh, nested, outputs, true)
+	maxRequiredFee := txrules.FeeForSerializeSize(btcutil.Amount(feeSatPerKb), maxSignedSize)
+
+	return int64(maxRequiredFee)
 }
