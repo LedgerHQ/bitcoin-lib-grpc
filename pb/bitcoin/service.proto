@@ -176,6 +176,10 @@ message CreateTransactionRequest {
   repeated Output outputs = 3;
   // Network used (Main, Test, Reg...)
   BitcoinNetwork network = 4;
+  // Change Address
+  string change_address = 5;
+  // Fee per kb in Satoshi
+  int64 fee_sat_per_kb = 6;
 }
 
 // RawTransactionResponse defines the builded raw tx.
@@ -208,6 +212,10 @@ message Input {
   string output_hash = 1;
   // Index of the utxo in the transaction
   int32 output_index = 2;
+  // The script in utxo to estimate fees
+  bytes script = 3;
+  // The amount to estimate change
+  int64 value = 4;
 }
 
 // This is the definition of a transaction Output

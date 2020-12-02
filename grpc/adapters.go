@@ -64,6 +64,8 @@ func Tx(txProto *pb.CreateTransactionRequest) (*bitcoin.Tx, error) {
 		inputs = append(inputs, bitcoin.Input{
 			OutputHash:  inputProto.OutputHash,
 			OutputIndex: uint32(inputProto.OutputIndex),
+			Script:      inputProto.Script,
+			Value:       inputProto.Value,
 		})
 	}
 
@@ -82,9 +84,11 @@ func Tx(txProto *pb.CreateTransactionRequest) (*bitcoin.Tx, error) {
 	}
 
 	return &bitcoin.Tx{
-		Inputs:   inputs,
-		Outputs:  outputs,
-		LockTime: txProto.LockTime,
+		Inputs:        inputs,
+		Outputs:       outputs,
+		ChangeAddress: txProto.ChangeAddress,
+		FeeSatPerKb:   txProto.FeeSatPerKb,
+		LockTime:      txProto.LockTime,
 	}, nil
 }
 
