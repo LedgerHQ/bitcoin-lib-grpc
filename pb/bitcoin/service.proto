@@ -213,9 +213,9 @@ message Input {
   // Index of the utxo in the transaction
   int32 output_index = 2;
   // The script in utxo to estimate fees
-	bytes script = 3;
+  bytes script = 3;
   // The amount to estimate change
-	int64 value = 4;
+  int64 value = 4;
 }
 
 // This is the definition of a transaction Output
