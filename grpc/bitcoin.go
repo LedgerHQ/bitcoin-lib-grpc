@@ -100,9 +100,10 @@ func (c *controller) CreateTransaction(
 	}
 
 	response := pb.RawTransactionResponse{
-		Hex:         rawTx.Hex,
-		Hash:        rawTx.Hash,
-		WitnessHash: rawTx.WitnessHash,
+		Hex:           rawTx.Hex,
+		Hash:          rawTx.Hash,
+		WitnessHash:   rawTx.WitnessHash,
+		NotEnoughUtxo: &pb.NotEnoughUtxo{MissingAmount: rawTx.NotEnoughUtxo.MissingAmount},
 	}
 
 	return &response, nil

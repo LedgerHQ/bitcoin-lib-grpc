@@ -193,6 +193,13 @@ message RawTransactionResponse {
   //
   // Same as hash if no witness is present.
   string witness_hash = 3;
+
+  // If not enough utxos to pay for fees.
+  NotEnoughUtxo not_enough_utxo = 4;
+}
+
+message NotEnoughUtxo {
+  int64 missing_amount = 1;
 }
 
 // This is the definition of a transaction input

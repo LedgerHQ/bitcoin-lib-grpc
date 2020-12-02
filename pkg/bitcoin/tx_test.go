@@ -10,10 +10,11 @@ import (
 
 func TestCreateTransaction(t *testing.T) {
 	tests := []struct {
-		name        string
-		tx          *Tx
-		chainParams ChainParams
-		wantErr     error
+		name                    string
+		tx                      *Tx
+		chainParams             ChainParams
+		wantErr                 error
+		wantNotEnoughUtxoAmount *NotEnoughUtxo
 	}{
 		{
 			name: "mainnet P2WPKH",
@@ -23,6 +24,8 @@ func TestCreateTransaction(t *testing.T) {
 					{
 						OutputHash:  "2f5dae23c2e18588c86cfc4e154f3b68bd8eb4265fe0b4b1341ad5aa40422f66",
 						OutputIndex: 0,
+						Script:      []byte("76a914e18c90d108c3509e952c1d79121f1776facf1c6788ac"),
+						Value:       110000,
 					},
 				},
 				Outputs: []Output{
@@ -31,8 +34,34 @@ func TestCreateTransaction(t *testing.T) {
 						Value:   100000,
 					},
 				},
+				ChangeAddress: "1GgX4cGLiqF9p4Sd1XcPQhEAAhNDA4wLYS",
+				FeeSatPerKb:   1234,
 			},
 			chainParams: Mainnet,
+		},
+		{
+			name: "mainnet P2WPKH with not enough utxo",
+			tx: &Tx{
+				LockTime: 0,
+				Inputs: []Input{
+					{
+						OutputHash:  "2f5dae23c2e18588c86cfc4e154f3b68bd8eb4265fe0b4b1341ad5aa40422f66",
+						OutputIndex: 0,
+						Script:      []byte("76a914e18c90d108c3509e952c1d79121f1776facf1c6788ac"),
+						Value:       100000,
+					},
+				},
+				Outputs: []Output{
+					{
+						Address: "1MZbRqZGpiSWGRLg8DUdVrDKHwNe1oesUZ",
+						Value:   100000,
+					},
+				},
+				ChangeAddress: "1GgX4cGLiqF9p4Sd1XcPQhEAAhNDA4wLYS",
+				FeeSatPerKb:   1234,
+			},
+			chainParams:             Mainnet,
+			wantNotEnoughUtxoAmount: &NotEnoughUtxo{MissingAmount: 134},
 		},
 	}
 
@@ -45,12 +74,26 @@ func TestCreateTransaction(t *testing.T) {
 				t.Fatalf("CreateTransaction() got error '%v'", err)
 			}
 
-			if rawTx == nil {
-				t.Fatalf("CreateTransaction() got nil response")
+			if rawTx.NotEnoughUtxo != nil && tt.wantNotEnoughUtxoAmount == nil {
+				t.Fatalf("CreateTransaction() got NotEnoughUtxo '%v'", rawTx.NotEnoughUtxo)
 			}
 
-			if len(rawTx.Hex) == 0 {
-				t.Fatalf("CreateTransaction() got empty raw hex")
+			if rawTx.NotEnoughUtxo == nil && tt.wantNotEnoughUtxoAmount != nil {
+				t.Fatalf("CreateTransaction() should have '%v'", tt.wantNotEnoughUtxoAmount)
+			}
+
+			if rawTx.NotEnoughUtxo != nil && tt.wantNotEnoughUtxoAmount != nil && rawTx.NotEnoughUtxo.MissingAmount != tt.wantNotEnoughUtxoAmount.MissingAmount {
+				t.Fatalf("CreateTransaction() got NotEnoughUtxo '%v'", rawTx.NotEnoughUtxo)
+			}
+
+			if tt.wantNotEnoughUtxoAmount == nil {
+				if rawTx == nil {
+					t.Fatalf("CreateTransaction() got nil response")
+				}
+
+				if len(rawTx.Hex) == 0 {
+					t.Fatalf("CreateTransaction() got empty raw hex")
+				}
 			}
 		})
 	}

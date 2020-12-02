@@ -3,11 +3,7 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=go,jetbrains,code,macos,linux
 
 ### Code ###
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+.vscode
 *.code-workspace
 
 ### Go ###
