@@ -140,7 +140,7 @@ func (c *controller) GenerateDerSignatures(
 
 	rawTx := RawTx(request.RawTx)
 
-	var utxos []bitcoin.Utxo
+	utxos := make([]bitcoin.Utxo, len(request.Utxos))
 	for idx, utxoProto := range request.Utxos {
 		utxo, err := Utxo(utxoProto)
 		if err != nil {
@@ -173,7 +173,7 @@ func (c *controller) SignTransaction(
 
 	rawTx := RawTx(request.RawTx)
 
-	var signatures []bitcoin.SignatureMetadata
+	signatures := make([]bitcoin.SignatureMetadata, len(request.Signatures))
 
 	for idx, signature := range request.Signatures {
 		sigMetadata, err := SignatureMetadata(signature, chainParams)
