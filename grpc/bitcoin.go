@@ -99,11 +99,16 @@ func (c *controller) CreateTransaction(
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
+	var notEnoughtUtxo *pb.NotEnoughUtxo
+	if rawTx.NotEnoughUtxo != nil {
+		notEnoughtUtxo = &pb.NotEnoughUtxo{MissingAmount: rawTx.NotEnoughUtxo.MissingAmount}
+	}
+
 	response := pb.RawTransactionResponse{
 		Hex:           rawTx.Hex,
 		Hash:          rawTx.Hash,
 		WitnessHash:   rawTx.WitnessHash,
-		NotEnoughUtxo: &pb.NotEnoughUtxo{MissingAmount: rawTx.NotEnoughUtxo.MissingAmount},
+		NotEnoughUtxo: notEnoughtUtxo,
 	}
 
 	return &response, nil
