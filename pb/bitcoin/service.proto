@@ -243,8 +243,8 @@ message GetKeypairResponse {
 }
 
 message Utxo {
-  // Output script
-  bytes script = 1;
+  // Output script hex
+  string script_hex = 1;
   // Output value
   string value = 2;
   // Derivation path

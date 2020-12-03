@@ -1,9 +1,11 @@
 package bitcoin
 
 import (
+	"encoding/hex"
 	"testing"
 
 	"github.com/btcsuite/btcd/btcec"
+	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
 )
@@ -100,6 +102,21 @@ func TestCreateTransaction(t *testing.T) {
 }
 
 func TestGenerateDerSignatures(t *testing.T) {
+	hashStrToHash := func(str string) *chainhash.Hash {
+		hash, err := chainhash.NewHashFromStr("864608ddfcb050c8a9a0c275687186ee2957e0853bee198aa464de798b7696db")
+		if err != nil {
+			panic(err)
+		}
+		return hash
+	}
+	hexStrToBytes := func(hexStr string) []byte {
+		script, err := hex.DecodeString(hexStr)
+		if err != nil {
+			panic(err)
+		}
+		return script
+	}
+
 	tests := []struct {
 		name    string
 		msgTx   *wire.MsgTx
@@ -113,7 +130,7 @@ func TestGenerateDerSignatures(t *testing.T) {
 				Version: 1,
 				TxIn: []*wire.TxIn{
 					wire.NewTxIn(
-						wire.NewOutPoint(btcutil.NewTx(wire.NewMsgTx(1)).Hash(), 0),
+						wire.NewOutPoint(hashStrToHash("864608ddfcb050c8a9a0c275687186ee2957e0853bee198aa464de798b7696db"), 0),
 						nil,
 						nil,
 					),
@@ -122,12 +139,12 @@ func TestGenerateDerSignatures(t *testing.T) {
 			},
 			utxos: []Utxo{
 				{
-					Script:     nil,
-					Value:      100000,
-					Derivation: []uint32{44 + h, 0 + h, 0 + h, 0, 0},
+					Script:     hexStrToBytes("001457f683080ee4491f1979950333e3240a0a9695d5"),
+					Value:      1000000,
+					Derivation: []uint32{84 + h, 0 + h, 0 + h, 0, 2},
 				},
 			},
-			privKey: "xprv9yv8fLFeRhD7NcKbjGS4GesBvy2PjvoRcwEKKaz7zJvM2cQ1eiCwhcHGQNEBwsXthHbPtZNQg5SBBEWS1QH941SKitBdaUT7VDTxzdS8vu7",
+			privKey: "tprv8g5UXufoRYtBEU5g2ueXDG32joLBLEzsGnoTUBZayNm8cAFGS56CcJmGwuSNEBLguQ3ja5betvc6kas1BXPpVzwuh8MWKr2ijzXJWuoJBqL",
 		},
 	}
 

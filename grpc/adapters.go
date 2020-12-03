@@ -109,8 +109,14 @@ func Utxo(proto *pb.Utxo) (*bitcoin.Utxo, error) {
 			"invalid utxo value: %s", proto.Value)
 	}
 
+	script, err := hex.DecodeString(proto.ScriptHex)
+	if err != nil {
+		return nil, errors.Wrapf(err,
+			"invalid utxo script hex: %s", proto.ScriptHex)
+	}
+
 	return &bitcoin.Utxo{
-		Script:     proto.Script,
+		Script:     script,
 		Value:      value,
 		Derivation: proto.Derivation,
 	}, nil
