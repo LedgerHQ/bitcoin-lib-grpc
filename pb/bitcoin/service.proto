@@ -31,6 +31,10 @@ service CoinService {
   // HD version bytes during encoding.
   rpc EncodeAddress(EncodeAddressRequest) returns (EncodeAddressResponse) {}
 
+  // GetAccountExtendedKey accepts public key material and parameters, and
+  // returns the serialized extended public key.
+  rpc GetAccountExtendedKey(GetAccountExtendedKeyRequest) returns (GetAccountExtendedKeyResponse) {}
+
   // CreateTransaction prepares a transaction and returns a raw tx in order to be signed.
   rpc CreateTransaction(CreateTransactionRequest) returns (RawTransactionResponse) {}
 
@@ -128,6 +132,35 @@ message DeriveExtendedKeyResponse {
   //
   // This field is 32 bytes long.
   bytes chain_code = 3;
+}
+
+// GetAccountExtendedKeyRequest models the request passed to GetAccountExtendedKey
+// RPC.
+message GetAccountExtendedKeyRequest {
+  // Serialized public key associated with the extended key derived
+  // at the account-level derivation path.
+  //
+  // Both compressed as well as uncompressed public keys are accepted.
+  bytes public_key = 1;
+
+  // Serialized chain code associated with the extended key derived at the
+  // account-level derivation path.
+  //
+  // This field is 32 bytes long.
+  bytes chain_code = 2;
+
+  // Index at BIP32 level 3.
+  uint32 account_index = 3;
+
+  // Chain params to identify the coin and network for which the extended
+  // public key must be generated.
+  ChainParams chain_params = 4;
+}
+
+// GetAccountExtendedKeyResponse wraps the output response of GetAccountExtendedKey RPC.
+message GetAccountExtendedKeyResponse {
+  // Extended key serialized as a base58-encoded string.
+  string extended_key = 1;
 }
 
 // AddressEncoding enumerates the list of all supported encoding formats, for

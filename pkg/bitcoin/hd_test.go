@@ -153,6 +153,97 @@ func TestDeriveExtendedKey(t *testing.T) {
 	}
 }
 
+func TestGetAccountExtendedKey(t *testing.T) {
+	tests := []struct {
+		name               string
+		publicKey          []byte
+		chainCode          []byte
+		accountIndex       uint32
+		chainParams        ChainParams
+		want               string
+		wantAddress        string
+		encodingForAddress AddressEncoding
+		wantErr            error
+	}{
+		{
+			// https://github.com/LedgerHQ/lib-ledger-core/blob/54ddf50/core/test/bitcoin/address_test.cpp#L81
+			name:         "mainnet legacy",
+			accountIndex: 0,
+			publicKey: []byte{
+				0x02, 0xc3, 0x68, 0xbd, 0xec, 0x47, 0xa1, 0xb6,
+				0xfa, 0xa7, 0x6d, 0x62, 0x4e, 0xad, 0x0c, 0xd2,
+				0x78, 0x32, 0x34, 0x98, 0x3c, 0x46, 0x67, 0x67,
+				0x21, 0x6e, 0xcd, 0xac, 0x8c, 0x47, 0x2d, 0xf3,
+				0xa6,
+			},
+			chainCode: []byte{
+				0xb6, 0xb8, 0xa4, 0x9c, 0x62, 0x34, 0xb2, 0x6c,
+				0x91, 0xbf, 0xaf, 0xac, 0xd9, 0x05, 0x4c, 0x18,
+				0x56, 0x21, 0x30, 0x23, 0x4d, 0xc3, 0x9e, 0x94,
+				0x63, 0x56, 0x1c, 0xa6, 0x66, 0x7f, 0x40, 0xf8,
+			},
+			chainParams:        Mainnet,
+			wantAddress:        "14QcTVDFpuGsmNSLeDexB1kWCdoBnTTtgr",
+			encodingForAddress: Legacy,
+			want:               "xpub6DVHQNhjvVchuKeMGnKbbNSdczQ4yMqEW1H1qhQzk1oPxkSqyHZR9Pn7zZ494sVhZqK2WD8kxo9rqiJFL41P67JCdNYka2W5LnANDVWSjzm",
+		},
+	}
+
+	s := &Service{}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := s.GetAccountExtendedKey(
+				tt.publicKey, tt.chainCode, tt.accountIndex, tt.chainParams)
+
+			if err != nil && tt.wantErr == nil {
+				t.Fatalf("GetAccountExtendedKey() unexpected error: %v", err)
+			}
+
+			if err == nil && tt.wantErr != nil {
+				t.Fatalf("GetAccountExtendedKey() got no error, want '%v'",
+					tt.wantErr)
+			}
+
+			if err != nil && tt.wantErr.Error() != errors.Cause(err).Error() {
+				t.Fatalf("GetAccountExtendedKey() got error '%v', want '%v'",
+					err, tt.wantErr)
+			}
+
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Fatalf("GetAccountExtendedKey() got error '%v', want '%v'",
+					got, tt.want)
+			}
+
+			deriveAddress := func(key string, derivation []uint32) (string, error) {
+				keyMaterial, err := s.DeriveExtendedKey(key, derivation)
+				if err != nil {
+					return "", err
+				}
+
+				addr, err := s.EncodeAddress(
+					keyMaterial.PublicKey, tt.encodingForAddress, tt.chainParams)
+				if err != nil {
+					return "", err
+				}
+
+				return addr, nil
+			}
+
+			gotAddress, err := deriveAddress(tt.want, []uint32{0, 0})
+			if err != nil {
+				t.Fatalf("error: '%v' - cannot derive for '%v' at path 0/0",
+					err.Error(), tt.want)
+			}
+
+			if gotAddress != tt.wantAddress {
+				t.Fatalf("GetAccountExtendedKey() got wrong address: '%v', want '%v'",
+					gotAddress, tt.wantAddress)
+			}
+		})
+	}
+}
+
 func TestGetKeypair(t *testing.T) {
 	tests := []struct {
 		name        string
