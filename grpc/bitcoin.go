@@ -80,6 +80,25 @@ func (c *controller) DeriveExtendedKey(
 	}, nil
 }
 
+func (c *controller) GetAccountExtendedKey(
+	ctx context.Context, request *pb.GetAccountExtendedKeyRequest,
+) (*pb.GetAccountExtendedKeyResponse, error) {
+	chainParams, err := BitcoinChainParams(request.ChainParams)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, err.Error())
+	}
+
+	key, err := c.svc.GetAccountExtendedKey(
+		request.PublicKey, request.ChainCode, request.AccountIndex, chainParams)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, err.Error())
+	}
+
+	return &pb.GetAccountExtendedKeyResponse{
+		ExtendedKey: key,
+	}, nil
+}
+
 func (c *controller) CreateTransaction(
 	ctx context.Context, txRequest *pb.CreateTransactionRequest,
 ) (*pb.RawTransactionResponse, error) {

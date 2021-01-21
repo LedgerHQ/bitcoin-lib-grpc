@@ -1,6 +1,10 @@
 package bitcoin
 
 import (
+	"encoding/hex"
+
+	"github.com/btcsuite/btcd/btcec"
+	"github.com/btcsuite/btcutil"
 	"github.com/btcsuite/btcutil/hdkeychain"
 	"github.com/pkg/errors"
 )
@@ -71,6 +75,62 @@ func (s *Service) DeriveExtendedKey(
 	return response, nil
 }
 
+// GetAccountExtendedKey returns the serialized extended key from public key
+// material, and various parameters. This is typically provided by the HSM.
+//
+// Certain assumptions have been made for the parent fingerprint. Please read
+// the corresponding note in the code.
+//
+// accountIndex must NOT add the BIP32 harden bit. The account MUST have
+// been derived using the following scheme:
+//   m / purpose' / coin_type' / account'
+//
+// It also implies that accountIndex is at BIP32 level 3.
+func (s *Service) GetAccountExtendedKey(
+	publicKey []byte,
+	chainCode []byte,
+	accountIndex uint32,
+	chainParams ChainParams,
+) (string, error) {
+	// Load the serialized public key to a btcec.PublicKey type, in order to
+	// ensure that the:
+	//   * public point is on the secp256k1 elliptic curve.
+	//   * public point coordinates belong to the finite field of secp256k1.
+	//   * public key is well formed (valid magic, length, etc).
+	//   * public key used for serializing the extended key is compressed.
+	//
+	// Both compressed and uncompressed public keys are accepted.
+	loadedPublicKey, err := btcec.ParsePubKey(publicKey, btcec.S256())
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to parse public key %s",
+			hex.EncodeToString(publicKey))
+	}
+
+	serializedPublicKey := loadedPublicKey.SerializeCompressed()
+	const depth = 3
+	childNum := accountIndex + hdkeychain.HardenedKeyStart
+
+	// The fingerprint of the parent for the derived child is the first 4
+	// bytes of the RIPEMD160(SHA256(parentPubKey)).
+	//
+	// Caution: The HSM does NOT provide the parent fingerprint, so we use
+	// the fingerprint of the child (BIP32 depth 3). While this is incorrect,
+	// the fingerprint has no impact on the derived addresses.
+	parentFP := btcutil.Hash160(serializedPublicKey)[:4]
+
+	key := hdkeychain.NewExtendedKey(
+		chainParams.HDPublicKeyID[:],
+		serializedPublicKey,
+		chainCode,
+		parentFP,
+		depth,
+		childNum,
+		false,
+	)
+
+	return key.String(), nil
+}
+
 // Useful service to get keypair (xpub + privKey) from a seed for testing.
 // Random seed is generated if no seed is provided.
 func (s *Service) GetKeypair(seed string, chainParams ChainParams, derivation []uint32) (Keypair, error) {
@@ -107,8 +167,11 @@ func (s *Service) GetKeypair(seed string, chainParams ChainParams, derivation []
 		}
 	}
 
-	// Get the humand readable extended public key
+	// Get the human readable extended public key
 	accountExtendedPublicKey, err := extendedKey.Neuter()
+	if err != nil {
+		return response, err
+	}
 
 	response.ExtendedPublicKey = accountExtendedPublicKey.String()
 	response.PrivateKey = extendedKey.String()
