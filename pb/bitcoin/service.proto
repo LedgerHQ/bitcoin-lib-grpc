@@ -51,7 +51,7 @@ service CoinService {
   rpc SignTransaction(SignTransactionRequest) returns (RawTransactionResponse) {}
 }
 
-// BitcoinNetwork enumerates the list of all supported Bitcoin networks. It
+// BitcoinNetwork enumerates the list of all supported Bitcoin and forks networks. It
 // also indicates the coin for which the networks are defined, in this case,
 // Bitcoin.
 //
@@ -63,6 +63,7 @@ enum BitcoinNetwork {
   BITCOIN_NETWORK_MAINNET     = 1;  // Main network
   BITCOIN_NETWORK_TESTNET3    = 2;  // Current test network (since Bitcoin Core v0.7)
   BITCOIN_NETWORK_REGTEST     = 3;  // Regression test network
+  LITECOIN_NETWORK_MAINNET    = 4;  // Litecoin main network
 }
 
 // ChainParams defines all the configuration required to uniquely identify a

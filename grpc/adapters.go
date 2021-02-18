@@ -4,39 +4,31 @@ import (
 	"encoding/hex"
 	"strconv"
 
-	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcutil"
 	pb "github.com/ledgerhq/bitcoin-lib-grpc/pb/bitcoin"
 	"github.com/ledgerhq/bitcoin-lib-grpc/pkg/bitcoin"
+	"github.com/ledgerhq/bitcoin-lib-grpc/pkg/litecoin"
 	"github.com/pkg/errors"
 )
 
-func BitcoinNetworkParams(network pb.BitcoinNetwork) (*chaincfg.Params, error) {
+func BitcoinNetworkParams(network pb.BitcoinNetwork) (bitcoin.ChainParams, error) {
 	switch network {
 	case pb.BitcoinNetwork_BITCOIN_NETWORK_MAINNET:
-		return &chaincfg.MainNetParams, nil
+		return bitcoin.MainNetParams, nil
 	case pb.BitcoinNetwork_BITCOIN_NETWORK_TESTNET3:
-		return &chaincfg.TestNet3Params, nil
+		return bitcoin.TestNet3Params, nil
 	case pb.BitcoinNetwork_BITCOIN_NETWORK_REGTEST:
-		return &chaincfg.RegressionNetParams, nil
-	default:
-		return nil, errors.Wrapf(ErrUnknownNetwork,
-			"failed to decode network params from network %s", network.String())
-	}
-}
-
-func BitcoinChainParams(chainParams *pb.ChainParams) (bitcoin.ChainParams, error) {
-	switch network := chainParams.GetBitcoinNetwork(); network {
-	case pb.BitcoinNetwork_BITCOIN_NETWORK_MAINNET:
-		return bitcoin.Mainnet, nil
-	case pb.BitcoinNetwork_BITCOIN_NETWORK_TESTNET3:
-		return bitcoin.Testnet3, nil
-	case pb.BitcoinNetwork_BITCOIN_NETWORK_REGTEST:
-		return bitcoin.Regtest, nil
+		return bitcoin.RegTestParams, nil
+	case pb.BitcoinNetwork_LITECOIN_NETWORK_MAINNET:
+		return litecoin.MainNetParams, nil
 	default:
 		return nil, errors.Wrapf(ErrUnknownNetwork,
 			"failed to decode chain params from network %s", network.String())
 	}
+}
+
+func BitcoinChainParams(chainParams *pb.ChainParams) (bitcoin.ChainParams, error) {
+	return BitcoinNetworkParams(chainParams.GetBitcoinNetwork())
 }
 
 func BitcoinAddressEncoding(encoding pb.AddressEncoding) (bitcoin.AddressEncoding, error) {

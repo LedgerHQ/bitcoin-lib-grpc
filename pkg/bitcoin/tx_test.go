@@ -39,7 +39,7 @@ func TestCreateTransaction(t *testing.T) {
 				ChangeAddress: "1GgX4cGLiqF9p4Sd1XcPQhEAAhNDA4wLYS",
 				FeeSatPerKb:   1234,
 			},
-			chainParams: Mainnet,
+			chainParams: MainNetParams,
 		},
 		{
 			name: "mainnet P2WPKH with not enough utxo",
@@ -62,7 +62,7 @@ func TestCreateTransaction(t *testing.T) {
 				ChangeAddress: "1GgX4cGLiqF9p4Sd1XcPQhEAAhNDA4wLYS",
 				FeeSatPerKb:   1234,
 			},
-			chainParams:             Mainnet,
+			chainParams:             MainNetParams,
 			wantNotEnoughUtxoAmount: &NotEnoughUtxo{MissingAmount: 134},
 		},
 	}
@@ -218,7 +218,7 @@ func TestSignTransaction(t *testing.T) {
 				},
 				LockTime: 0x0,
 			},
-			chainParams: Mainnet,
+			chainParams: MainNetParams,
 			utxos: []Utxo{
 				{
 					Script:     nil,
@@ -233,7 +233,7 @@ func TestSignTransaction(t *testing.T) {
 					PubKey: getPublicKey(
 						"xpub6Cc939fyHvfB9pPLWd3bSyyQFvgKbwhidca49jGCM5Hz5ypEPGf9JVXB4NBuUfPgoHnMjN6oNgdC9KRqM11RZtL8QLW6rFKziNwHDYhZ6Kx",
 						[]uint32{1, 1},
-						Mainnet,
+						MainNetParams,
 					),
 					AddrEncoding: Legacy,
 				},
