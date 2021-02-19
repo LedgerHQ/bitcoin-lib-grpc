@@ -11,15 +11,15 @@ import (
 	"github.com/pkg/errors"
 )
 
-func BitcoinNetworkParams(network pb.BitcoinNetwork) (bitcoin.ChainParams, error) {
+func NetworkParams(network pb.Network) (bitcoin.ChainParams, error) {
 	switch network {
-	case pb.BitcoinNetwork_BITCOIN_NETWORK_MAINNET:
+	case pb.Network_NETWORK_BITCOIN_MAINNET:
 		return bitcoin.MainNetParams, nil
-	case pb.BitcoinNetwork_BITCOIN_NETWORK_TESTNET3:
+	case pb.Network_NETWORK_BITCOIN_TESTNET3:
 		return bitcoin.TestNet3Params, nil
-	case pb.BitcoinNetwork_BITCOIN_NETWORK_REGTEST:
+	case pb.Network_NETWORK_BITCOIN_REGTEST:
 		return bitcoin.RegTestParams, nil
-	case pb.BitcoinNetwork_LITECOIN_NETWORK_MAINNET:
+	case pb.Network_NETWORK_LITECOIN_MAINNET:
 		return litecoin.MainNetParams, nil
 	default:
 		return nil, errors.Wrapf(ErrUnknownNetwork,
@@ -27,8 +27,8 @@ func BitcoinNetworkParams(network pb.BitcoinNetwork) (bitcoin.ChainParams, error
 	}
 }
 
-func BitcoinChainParams(chainParams *pb.ChainParams) (bitcoin.ChainParams, error) {
-	return BitcoinNetworkParams(chainParams.GetBitcoinNetwork())
+func ChainParams(chainParams *pb.ChainParams) (bitcoin.ChainParams, error) {
+	return NetworkParams(chainParams.GetBitcoinNetwork())
 }
 
 func BitcoinAddressEncoding(encoding pb.AddressEncoding) (bitcoin.AddressEncoding, error) {

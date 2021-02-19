@@ -51,19 +51,19 @@ service CoinService {
   rpc SignTransaction(SignTransactionRequest) returns (RawTransactionResponse) {}
 }
 
-// BitcoinNetwork enumerates the list of all supported Bitcoin and forks networks. It
+// Network enumerates the list of all supported Bitcoin and forks networks. It
 // also indicates the coin for which the networks are defined, in this case,
 // Bitcoin.
 //
 // This enum type may be used by gRPC clients to differentiate protocol
 // behaviour, magic numbers, addresses, keys, etc., for one network from those
 // intended for use on another network.
-enum BitcoinNetwork {
-  BITCOIN_NETWORK_UNSPECIFIED = 0;  // Fallback value if unrecognized / unspecified
-  BITCOIN_NETWORK_MAINNET     = 1;  // Main network
-  BITCOIN_NETWORK_TESTNET3    = 2;  // Current test network (since Bitcoin Core v0.7)
-  BITCOIN_NETWORK_REGTEST     = 3;  // Regression test network
-  LITECOIN_NETWORK_MAINNET    = 4;  // Litecoin main network
+enum Network {
+  NETWORK_UNSPECIFIED = 0;  // Fallback value if unrecognized / unspecified
+  NETWORK_BITCOIN_MAINNET     = 1;  // Main network
+  NETWORK_BITCOIN_TESTNET3    = 2;  // Current test network (since Bitcoin Core v0.7)
+  NETWORK_BITCOIN_REGTEST     = 3;  // Regression test network
+  NETWORK_LITECOIN_MAINNET    = 4;  // Litecoin main network
 }
 
 // ChainParams defines all the configuration required to uniquely identify a
@@ -75,7 +75,7 @@ enum BitcoinNetwork {
 // be included in future.
 message ChainParams {
   oneof network {
-    BitcoinNetwork bitcoin_network = 1;
+    Network bitcoin_network = 1;
   }
 }
 
@@ -209,7 +209,7 @@ message CreateTransactionRequest {
   // Outputs : Addresses of the recipients and Amounts send
   repeated Output outputs = 3;
   // Network used (Main, Test, Reg...)
-  BitcoinNetwork network = 4;
+  Network network = 4;
   // Change Address
   string change_address = 5;
   // Fee per kb in Satoshi
@@ -264,7 +264,7 @@ message GetKeypairRequest {
   // Optional seed
   string seed = 1;
   // Network used (Main, Test, Reg...)
-  BitcoinNetwork network = 2;
+  Network network = 2;
   // Derivation path
   repeated uint32 derivation = 3;
 }
@@ -302,7 +302,7 @@ message SignTransactionRequest {
   // Unsigned raw tx
   RawTransactionResponse raw_tx = 1;
   // Network used (Main, Test, Reg...)
-  BitcoinNetwork network = 2;
+  Network network = 2;
   // Signatures metadata
   repeated SignatureMetadata signatures = 3;
 }

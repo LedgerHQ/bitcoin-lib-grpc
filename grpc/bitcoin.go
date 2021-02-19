@@ -22,7 +22,7 @@ func NewBitcoinController() *controller {
 func (c *controller) ValidateAddress(
 	ctx context.Context, request *pb.ValidateAddressRequest,
 ) (*pb.ValidateAddressResponse, error) {
-	chainParams, err := BitcoinChainParams(request.ChainParams)
+	chainParams, err := ChainParams(request.ChainParams)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
@@ -45,7 +45,7 @@ func (c *controller) ValidateAddress(
 func (c *controller) EncodeAddress(
 	ctx context.Context, request *pb.EncodeAddressRequest,
 ) (*pb.EncodeAddressResponse, error) {
-	chainParams, err := BitcoinChainParams(request.ChainParams)
+	chainParams, err := ChainParams(request.ChainParams)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
@@ -83,7 +83,7 @@ func (c *controller) DeriveExtendedKey(
 func (c *controller) GetAccountExtendedKey(
 	ctx context.Context, request *pb.GetAccountExtendedKeyRequest,
 ) (*pb.GetAccountExtendedKeyResponse, error) {
-	chainParams, err := BitcoinChainParams(request.ChainParams)
+	chainParams, err := ChainParams(request.ChainParams)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
@@ -103,7 +103,7 @@ func (c *controller) CreateTransaction(
 	ctx context.Context, txRequest *pb.CreateTransactionRequest,
 ) (*pb.RawTransactionResponse, error) {
 
-	chainParams, err := BitcoinNetworkParams(txRequest.Network)
+	chainParams, err := NetworkParams(txRequest.Network)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
@@ -137,7 +137,7 @@ func (c *controller) GetKeypair(
 	ctx context.Context, request *pb.GetKeypairRequest,
 ) (*pb.GetKeypairResponse, error) {
 
-	chainParams, err := BitcoinNetworkParams(request.Network)
+	chainParams, err := NetworkParams(request.Network)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
@@ -185,7 +185,7 @@ func (c *controller) SignTransaction(
 	ctx context.Context, request *pb.SignTransactionRequest,
 ) (*pb.RawTransactionResponse, error) {
 
-	chainParams, err := BitcoinNetworkParams(request.Network)
+	chainParams, err := NetworkParams(request.Network)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
