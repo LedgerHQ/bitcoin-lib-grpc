@@ -7,7 +7,6 @@ import (
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/pkg/errors"
 
-	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcutil"
 )
 
@@ -25,23 +24,6 @@ const (
 
 	// NativeSegwit indicates the P2WPKH address encoding scheme.
 	NativeSegwit
-)
-
-// ChainParams is a type alias for chaincfg.Params, to allow external
-// packages to refer to the chain parameters without importing btcd.
-type ChainParams = *chaincfg.Params
-
-var (
-	// Mainnet defines the network parameters for the main Bitcoin network.
-	Mainnet = &chaincfg.MainNetParams
-
-	// Testnet3 defines the network parameters for the test Bitcoin network
-	// (version 3).
-	Testnet3 = &chaincfg.TestNet3Params
-
-	// Regtest defines the network parameters for the regression test
-	// Bitcoin network.
-	Regtest = &chaincfg.RegressionNetParams
 )
 
 // ValidateAddress returns an error if the given address is malformed.

@@ -65,6 +65,11 @@ enum BitcoinNetwork {
   BITCOIN_NETWORK_REGTEST     = 3;  // Regression test network
 }
 
+enum LitecoinNetwork {
+  LITECOIN_NETWORK_UNSPECIFIED = 0;  // Fallback value if unrecognized / unspecified
+  LITECOIN_NETWORK_MAINNET     = 1;  // Litecoin main network
+}
+
 // ChainParams defines all the configuration required to uniquely identify a
 // coin, along with its network.
 //
@@ -75,6 +80,7 @@ enum BitcoinNetwork {
 message ChainParams {
   oneof network {
     BitcoinNetwork bitcoin_network = 1;
+    LitecoinNetwork litecoin_network = 2;
   }
 }
 
@@ -207,8 +213,8 @@ message CreateTransactionRequest {
   repeated Input inputs = 2;
   // Outputs : Addresses of the recipients and Amounts send
   repeated Output outputs = 3;
-  // Network used (Main, Test, Reg...)
-  BitcoinNetwork network = 4;
+  // Chain params to identify the coin and network
+  ChainParams chain_params = 4;
   // Change Address
   string change_address = 5;
   // Fee per kb in Satoshi
@@ -262,8 +268,8 @@ message Output {
 message GetKeypairRequest {
   // Optional seed
   string seed = 1;
-  // Network used (Main, Test, Reg...)
-  BitcoinNetwork network = 2;
+  // Chain params to identify the coin and network
+  ChainParams chain_params = 2;
   // Derivation path
   repeated uint32 derivation = 3;
 }
@@ -300,8 +306,8 @@ message GenerateDerSignaturesResponse {
 message SignTransactionRequest {
   // Unsigned raw tx
   RawTransactionResponse raw_tx = 1;
-  // Network used (Main, Test, Reg...)
-  BitcoinNetwork network = 2;
+  // Chain params to identify the coin and network.
+  ChainParams chain_params = 2;
   // Signatures metadata
   repeated SignatureMetadata signatures = 3;
 }
