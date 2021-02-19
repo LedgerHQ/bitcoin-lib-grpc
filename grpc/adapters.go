@@ -11,24 +11,23 @@ import (
 	"github.com/pkg/errors"
 )
 
-func NetworkParams(network pb.Network) (bitcoin.ChainParams, error) {
-	switch network {
-	case pb.Network_NETWORK_BITCOIN_MAINNET:
+func ChainParams(chainParams *pb.ChainParams) (bitcoin.ChainParams, error) {
+	switch network := chainParams.GetBitcoinNetwork(); network {
+	case pb.BitcoinNetwork_BITCOIN_NETWORK_MAINNET:
 		return bitcoin.MainNetParams, nil
-	case pb.Network_NETWORK_BITCOIN_TESTNET3:
+	case pb.BitcoinNetwork_BITCOIN_NETWORK_TESTNET3:
 		return bitcoin.TestNet3Params, nil
-	case pb.Network_NETWORK_BITCOIN_REGTEST:
-		return bitcoin.RegTestParams, nil
-	case pb.Network_NETWORK_LITECOIN_MAINNET:
+	case pb.BitcoinNetwork_BITCOIN_NETWORK_REGTEST:
+		return bitcoin.RegressionNetParams, nil
+	}
+
+	switch network := chainParams.GetLitecoinNetwork(); network {
+	case pb.LitecoinNetwork_LITECOIN_NETWORK_MAINNET:
 		return litecoin.MainNetParams, nil
 	default:
 		return nil, errors.Wrapf(ErrUnknownNetwork,
 			"failed to decode chain params from network %s", network.String())
 	}
-}
-
-func ChainParams(chainParams *pb.ChainParams) (bitcoin.ChainParams, error) {
-	return NetworkParams(chainParams.GetBitcoinNetwork())
 }
 
 func BitcoinAddressEncoding(encoding pb.AddressEncoding) (bitcoin.AddressEncoding, error) {

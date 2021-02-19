@@ -15,7 +15,7 @@ var (
 	// (version 3).
 	TestNet3Params = &chaincfg.TestNet3Params
 
-	// RegTestParams defines the network parameters for the regression test
+	// RegressionNetParams defines the network parameters for the regression test
 	// Bitcoin network.
-	RegTestParams = &chaincfg.RegressionNetParams
+	RegressionNetParams = &chaincfg.RegressionNetParams
 )

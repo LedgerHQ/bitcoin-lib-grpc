@@ -310,7 +310,7 @@ func TestEncodeAddress(t *testing.T) {
 		// FORKS SUPPORT:
 		// LTC (Litecoin)
 		{
-			// https://github.com/LedgerHQ/lib-ledger-core/blob/978a496/core/test/bitcoin/address_test.cpp#L89
+			// https://github.com/LedgerHQ/lib-ledger-core/blob/978a496/core/test/bitcoin/address_test.cpp#L130
 			name: "Ltub P2WPKH",
 			publicKey: derivePublicKey(
 				"Ltub2YC8XgcRjMJqvX8LsuBxdM7PKE5uih6247CpgK2rfEdzEGt1YHVHW4L865ss5eEy2K1KixTMkrHJbzTtqxpiGpM4wyrxYRFJFxuACSJqkyo",

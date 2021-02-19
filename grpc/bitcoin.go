@@ -103,7 +103,7 @@ func (c *controller) CreateTransaction(
 	ctx context.Context, txRequest *pb.CreateTransactionRequest,
 ) (*pb.RawTransactionResponse, error) {
 
-	chainParams, err := NetworkParams(txRequest.Network)
+	chainParams, err := ChainParams(txRequest.ChainParams)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
@@ -137,7 +137,7 @@ func (c *controller) GetKeypair(
 	ctx context.Context, request *pb.GetKeypairRequest,
 ) (*pb.GetKeypairResponse, error) {
 
-	chainParams, err := NetworkParams(request.Network)
+	chainParams, err := ChainParams(request.ChainParams)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
@@ -185,7 +185,7 @@ func (c *controller) SignTransaction(
 	ctx context.Context, request *pb.SignTransactionRequest,
 ) (*pb.RawTransactionResponse, error) {
 
-	chainParams, err := NetworkParams(request.Network)
+	chainParams, err := ChainParams(request.ChainParams)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
