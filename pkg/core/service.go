@@ -1,4 +1,4 @@
-package bitcoin
+package core
 
 // Service type provides a bridge to access functions related to the
 // Bitcoin protocol.

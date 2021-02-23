@@ -1,4 +1,4 @@
-package bitcoin
+package core
 
 import "github.com/btcsuite/btcutil"
 

@@ -1,4 +1,4 @@
-package bitcoin
+package core
 
 import (
 	"bytes"
@@ -13,6 +13,7 @@ import (
 	"github.com/btcsuite/btcwallet/wallet/txauthor"
 	"github.com/btcsuite/btcwallet/wallet/txrules"
 	"github.com/btcsuite/btcwallet/wallet/txsizes"
+	"github.com/ledgerhq/bitcoin-lib-grpc/pkg/chaincfg"
 	"github.com/pkg/errors"
 )
 
@@ -65,7 +66,7 @@ type SignatureMetadata struct {
 	AddrEncoding AddressEncoding
 }
 
-func (s *Service) CreateTransaction(tx *Tx, chainParams ChainParams) (*RawTx, error) {
+func (s *Service) CreateTransaction(tx *Tx, chainParams chaincfg.ChainParams) (*RawTx, error) {
 	var inputAmount, targetAmount int64
 
 	// Create a new btcd transaction
@@ -235,7 +236,7 @@ func (s *Service) GenerateDerSignatures(msgTx *wire.MsgTx, utxos []Utxo, privKey
 	return derSignatures, nil
 }
 
-func (s *Service) SignTransaction(msgTx *wire.MsgTx, chainParams ChainParams, signatures []SignatureMetadata) (*RawTx, error) {
+func (s *Service) SignTransaction(msgTx *wire.MsgTx, chainParams chaincfg.ChainParams, signatures []SignatureMetadata) (*RawTx, error) {
 	// Validation
 	if len(msgTx.TxIn) != len(signatures) {
 		return nil, errors.New("inputs length != signatures length")

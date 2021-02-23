@@ -1,4 +1,4 @@
-package bitcoin
+package core
 
 import (
 	"encoding/hex"
@@ -8,13 +8,14 @@ import (
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
+	"github.com/ledgerhq/bitcoin-lib-grpc/pkg/chaincfg"
 )
 
 func TestCreateTransaction(t *testing.T) {
 	tests := []struct {
 		name                    string
 		tx                      *Tx
-		chainParams             ChainParams
+		chainParams             chaincfg.ChainParams
 		wantErr                 error
 		wantNotEnoughUtxoAmount *NotEnoughUtxo
 	}{
@@ -39,7 +40,7 @@ func TestCreateTransaction(t *testing.T) {
 				ChangeAddress: "1GgX4cGLiqF9p4Sd1XcPQhEAAhNDA4wLYS",
 				FeeSatPerKb:   1234,
 			},
-			chainParams: MainNetParams,
+			chainParams: chaincfg.BitcoinMainNetParams,
 		},
 		{
 			name: "mainnet P2WPKH with not enough utxo",
@@ -62,7 +63,7 @@ func TestCreateTransaction(t *testing.T) {
 				ChangeAddress: "1GgX4cGLiqF9p4Sd1XcPQhEAAhNDA4wLYS",
 				FeeSatPerKb:   1234,
 			},
-			chainParams:             MainNetParams,
+			chainParams:             chaincfg.BitcoinMainNetParams,
 			wantNotEnoughUtxoAmount: &NotEnoughUtxo{MissingAmount: 134},
 		},
 	}
@@ -180,7 +181,7 @@ func TestGenerateDerSignatures(t *testing.T) {
 func TestSignTransaction(t *testing.T) {
 	// Helper to derive extended key and return the btcec public key.
 	// Use this in unit-tests to get input public key.
-	getPublicKey := func(extendedKey string, derivation []uint32, chainParams ChainParams) *btcec.PublicKey {
+	getPublicKey := func(extendedKey string, derivation []uint32, chainParams chaincfg.ChainParams) *btcec.PublicKey {
 		s := &Service{}
 
 		pubKeyMat, err := s.DeriveExtendedKey(extendedKey, derivation)
@@ -199,7 +200,7 @@ func TestSignTransaction(t *testing.T) {
 	tests := []struct {
 		name               string
 		msgTx              *wire.MsgTx
-		chainParams        ChainParams
+		chainParams        chaincfg.ChainParams
 		utxos              []Utxo
 		privKey            string
 		signaturesMetadata []SignatureMetadata
@@ -218,7 +219,7 @@ func TestSignTransaction(t *testing.T) {
 				},
 				LockTime: 0x0,
 			},
-			chainParams: MainNetParams,
+			chainParams: chaincfg.BitcoinMainNetParams,
 			utxos: []Utxo{
 				{
 					Script:     nil,
@@ -233,7 +234,7 @@ func TestSignTransaction(t *testing.T) {
 					PubKey: getPublicKey(
 						"xpub6Cc939fyHvfB9pPLWd3bSyyQFvgKbwhidca49jGCM5Hz5ypEPGf9JVXB4NBuUfPgoHnMjN6oNgdC9KRqM11RZtL8QLW6rFKziNwHDYhZ6Kx",
 						[]uint32{1, 1},
-						MainNetParams,
+						chaincfg.BitcoinMainNetParams,
 					),
 					AddrEncoding: Legacy,
 				},

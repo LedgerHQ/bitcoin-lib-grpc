@@ -1,13 +1,13 @@
-package bitcoin
+package core
 
 import (
 	"encoding/hex"
 
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/btcsuite/btcd/txscript"
-	"github.com/pkg/errors"
-
 	"github.com/btcsuite/btcutil"
+	"github.com/ledgerhq/bitcoin-lib-grpc/pkg/chaincfg"
+	"github.com/pkg/errors"
 )
 
 // AddressEncoding is an enum type for the various address encoding
@@ -28,7 +28,7 @@ const (
 
 // ValidateAddress returns an error if the given address is malformed.
 // It returns the normalized address otherwise.
-func (s *Service) ValidateAddress(address string, chainParams ChainParams) (string, error) {
+func (s *Service) ValidateAddress(address string, chainParams chaincfg.ChainParams) (string, error) {
 	addr, err := btcutil.DecodeAddress(address, chainParams)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to decode address %s", address)
@@ -51,7 +51,7 @@ func (s *Service) ValidateAddress(address string, chainParams ChainParams) (stri
 //   [BIP173]: BIP0173 - Base32 address format for native v0-16 witness outputs
 //   https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki
 func (s *Service) EncodeAddress(
-	publicKey []byte, encoding AddressEncoding, chainParams ChainParams,
+	publicKey []byte, encoding AddressEncoding, chainParams chaincfg.ChainParams,
 ) (string, error) {
 	// Load the serialized public key to a btcec.PublicKey type, in order to
 	// ensure that the:

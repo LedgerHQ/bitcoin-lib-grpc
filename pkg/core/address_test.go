@@ -1,10 +1,10 @@
-package bitcoin
+package core
 
 import (
 	"reflect"
 	"testing"
 
-	"github.com/ledgerhq/bitcoin-lib-grpc/pkg/litecoin"
+	"github.com/ledgerhq/bitcoin-lib-grpc/pkg/chaincfg"
 	"github.com/pkg/errors"
 )
 
@@ -12,32 +12,32 @@ func TestService_ValidateAddress(t *testing.T) {
 	tests := []struct {
 		name        string
 		address     string
-		chainParams ChainParams
+		chainParams chaincfg.ChainParams
 		want        string
 		wantErr     error
 	}{
 		{
 			name:        "mainnet P2PKH valid",
 			address:     "1MirQ9bwyQcGVJPwKUgapu5ouK2E2Ey4gX",
-			chainParams: MainNetParams,
+			chainParams: chaincfg.BitcoinMainNetParams,
 			want:        "1MirQ9bwyQcGVJPwKUgapu5ouK2E2Ey4gX",
 		},
 		{
 			name:        "mainnet P2WPKH invalid checksum",
 			address:     "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t5",
-			chainParams: MainNetParams,
+			chainParams: chaincfg.BitcoinMainNetParams,
 			wantErr:     errors.New("checksum failed. Expected v8f3t4, got v8f3t5."),
 		},
 		{
 			name:        "testnet3 P2WPKH invalid mixed case",
 			address:     "tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sL5k7",
-			chainParams: TestNet3Params,
+			chainParams: chaincfg.BitcoinTestNet3Params,
 			wantErr:     errors.New("string not all lowercase or all uppercase"),
 		},
 		{
 			name:        "LTC mainnet P2WPKH valid",
 			address:     "ltc1q7qnj9xm8wp8ucmg64lk0h03as8k6ql6rk4wvsd",
-			chainParams: litecoin.MainNetParams,
+			chainParams: chaincfg.LitecoinMainNetParams,
 			want:        "ltc1q7qnj9xm8wp8ucmg64lk0h03as8k6ql6rk4wvsd",
 		},
 	}
@@ -88,7 +88,7 @@ func TestEncodeAddress(t *testing.T) {
 		name        string
 		publicKey   []byte
 		encoding    AddressEncoding
-		chainParams ChainParams
+		chainParams chaincfg.ChainParams
 		want        string
 		wantErr     error
 	}{
@@ -100,7 +100,7 @@ func TestEncodeAddress(t *testing.T) {
 				[]uint32{1, 1},
 			),
 			encoding:    Legacy,
-			chainParams: MainNetParams,
+			chainParams: chaincfg.BitcoinMainNetParams,
 			want:        "1AkRBkUZQe5Zqj5syxn1cHCvKUV6DjL9Po",
 		},
 		{
@@ -111,7 +111,7 @@ func TestEncodeAddress(t *testing.T) {
 				[]uint32{0, 0},
 			),
 			encoding:    WrappedSegwit,
-			chainParams: MainNetParams,
+			chainParams: chaincfg.BitcoinMainNetParams,
 			want:        "37VucYSaXLCAsxYyAPfbSi9eh4iEcbShgf",
 		},
 		{
@@ -122,7 +122,7 @@ func TestEncodeAddress(t *testing.T) {
 				[]uint32{0, 0},
 			),
 			encoding:    NativeSegwit,
-			chainParams: MainNetParams,
+			chainParams: chaincfg.BitcoinMainNetParams,
 			want:        "bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu",
 		},
 		{
@@ -132,7 +132,7 @@ func TestEncodeAddress(t *testing.T) {
 				"tpubDC5FSnBiZDMmhiuCmWAYsLwgLYrrT9rAqvTySfuCCrgsWz8wxMXUS9Tb9iVMvcRbvFcAHGkMD5Kx8koh4GquNGNTfohfk7pgjhaPCdXpoba",
 				[]uint32{0, 0}),
 			encoding:    Legacy,
-			chainParams: TestNet3Params,
+			chainParams: chaincfg.BitcoinTestNet3Params,
 			want:        "mkpZhYtJu2r87Js3pDiWJDmPte2NRZ8bJV",
 		},
 		{
@@ -142,7 +142,7 @@ func TestEncodeAddress(t *testing.T) {
 				"upub5DR1Mg5nykixzYjFXWW5GghAU7dDqoPVJ2jrqFbL8sJ7Hs7jn69MP7KBnnmxn88GeZtnH8PRKV9w5MMSFX8AdEAoXY8Qd8BJPoXtpMeHMxJ",
 				[]uint32{0, 0}),
 			encoding:    WrappedSegwit,
-			chainParams: TestNet3Params,
+			chainParams: chaincfg.BitcoinTestNet3Params,
 			want:        "2N4Q5FhU2497BryFfUgbqkAJE87aKHUhXMp",
 		},
 		{
@@ -152,7 +152,7 @@ func TestEncodeAddress(t *testing.T) {
 				"vpub5Y6cjg78GGuNLsaPhmYsiw4gYX3HoQiRBiSwDaBXKUafCt9bNwWQiitDk5VZ5BVxYnQdwoTyXSs2JHRPAgjAvtbBrf8ZhDYe2jWAqvZVnsc",
 				[]uint32{1, 1}),
 			encoding:    NativeSegwit,
-			chainParams: TestNet3Params,
+			chainParams: chaincfg.BitcoinTestNet3Params,
 			want:        "tb1qkwgskuzmmwwvqajnyr7yp9hgvh5y45kg8wvdmd",
 		},
 		{
@@ -166,7 +166,7 @@ func TestEncodeAddress(t *testing.T) {
 				0x52,
 			},
 			encoding:    Legacy,
-			chainParams: MainNetParams,
+			chainParams: chaincfg.BitcoinMainNetParams,
 			want:        "1PMycacnJaSqwwJqjawXBErnLsZ7RkXUAs",
 		},
 		{
@@ -180,7 +180,7 @@ func TestEncodeAddress(t *testing.T) {
 				0x28,
 			},
 			encoding:    WrappedSegwit,
-			chainParams: MainNetParams,
+			chainParams: chaincfg.BitcoinMainNetParams,
 			want:        "3Mwz6cg8Fz81B7ukexK8u8EVAW2yymgWNd",
 		},
 		{
@@ -194,7 +194,7 @@ func TestEncodeAddress(t *testing.T) {
 				0xf7,
 			},
 			encoding:    NativeSegwit,
-			chainParams: MainNetParams,
+			chainParams: chaincfg.BitcoinMainNetParams,
 			want:        "bc1qg9stkxrszkdqsuj92lm4c7akvk36zvhqw7p6ck",
 		},
 		// TODO: add pubkey P2PKH testnet3
@@ -210,7 +210,7 @@ func TestEncodeAddress(t *testing.T) {
 				0xac,
 			},
 			encoding:    NativeSegwit,
-			chainParams: TestNet3Params,
+			chainParams: chaincfg.BitcoinTestNet3Params,
 			want:        "tb1qr47dd36u96r0fjle36hdygdnp0v6pwfgqe6jxg",
 		},
 		{
@@ -221,7 +221,7 @@ func TestEncodeAddress(t *testing.T) {
 				"tpubDCcvqEHx7prGddpWTfEviiew5YLMrrKy4oJbt14teJZenSi6AYMAs2SNXwYXFzkrNYwECSmobwxESxMCrpfqw4gsUt88bcr8iMrJmbb8P2q",
 				[]uint32{0, 0}),
 			encoding:    WrappedSegwit,
-			chainParams: TestNet3Params,
+			chainParams: chaincfg.BitcoinTestNet3Params,
 			want:        "2MvuUMAG1NFQmmM69Writ6zTsYCnQHFG9BF",
 		},
 		{
@@ -232,7 +232,7 @@ func TestEncodeAddress(t *testing.T) {
 				"xpub6CMeLkY9TzXyLYXPWMXB5LWtprVABb6HwPEPXnEgESMNrSUBsvhXNsA7zKS1ZRKhUyQG4HjZysEP8v7gDNU4J6PvN5yLx4meEm3mpEapLMN",
 				[]uint32{0, 0}),
 			encoding:    NativeSegwit,
-			chainParams: MainNetParams,
+			chainParams: chaincfg.BitcoinMainNetParams,
 			want:        "bc1qh4kl0a0a3d7su8udc2rn62f8w939prqpl34z86",
 		},
 		{
@@ -251,7 +251,7 @@ func TestEncodeAddress(t *testing.T) {
 				0x01,
 			},
 			encoding:    Legacy,
-			chainParams: MainNetParams,
+			chainParams: chaincfg.BitcoinMainNetParams,
 			want:        "18iytmdAvJcQwCHWfWppDB5hR3YHNsYhRr",
 			wantErr:     nil,
 		},
@@ -259,7 +259,7 @@ func TestEncodeAddress(t *testing.T) {
 			name:        "invalid length public key",
 			publicKey:   []byte{0x04},
 			encoding:    NativeSegwit,
-			chainParams: MainNetParams,
+			chainParams: chaincfg.BitcoinMainNetParams,
 			wantErr:     errors.New("invalid pub key length 1"),
 		},
 		{
@@ -277,7 +277,7 @@ func TestEncodeAddress(t *testing.T) {
 				0xa3,
 			},
 			encoding:    NativeSegwit,
-			chainParams: MainNetParams,
+			chainParams: chaincfg.BitcoinMainNetParams,
 			wantErr:     errors.New("pubkey X parameter is >= to P"),
 		},
 		{
@@ -291,7 +291,7 @@ func TestEncodeAddress(t *testing.T) {
 				0x4c,
 			},
 			encoding:    NativeSegwit,
-			chainParams: MainNetParams,
+			chainParams: chaincfg.BitcoinMainNetParams,
 			wantErr:     errors.New("invalid square root"), // FIXME: Improve error in btcd
 		},
 		{
@@ -304,7 +304,7 @@ func TestEncodeAddress(t *testing.T) {
 				0xf7,
 			},
 			encoding:    9999,
-			chainParams: MainNetParams,
+			chainParams: chaincfg.BitcoinMainNetParams,
 			wantErr:     ErrUnknownAddressType,
 		},
 		// FORKS SUPPORT:
@@ -317,7 +317,7 @@ func TestEncodeAddress(t *testing.T) {
 				[]uint32{0, 0},
 			),
 			encoding:    NativeSegwit,
-			chainParams: litecoin.MainNetParams,
+			chainParams: chaincfg.LitecoinMainNetParams,
 			want:        "ltc1q7qnj9xm8wp8ucmg64lk0h03as8k6ql6rk4wvsd",
 		},
 	}

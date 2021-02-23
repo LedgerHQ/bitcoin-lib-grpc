@@ -1,12 +1,12 @@
-package bitcoin
+package core
 
 import (
 	"reflect"
 	"testing"
 
-	"github.com/pkg/errors"
-
 	"github.com/btcsuite/btcutil/hdkeychain"
+	"github.com/ledgerhq/bitcoin-lib-grpc/pkg/chaincfg"
+	"github.com/pkg/errors"
 )
 
 // h indicates the BIP32 harden bit, equivalent to 2^31.
@@ -159,7 +159,7 @@ func TestGetAccountExtendedKey(t *testing.T) {
 		publicKey          []byte
 		chainCode          []byte
 		accountIndex       uint32
-		chainParams        ChainParams
+		chainParams        chaincfg.ChainParams
 		want               string
 		wantAddress        string
 		encodingForAddress AddressEncoding
@@ -182,7 +182,7 @@ func TestGetAccountExtendedKey(t *testing.T) {
 				0x56, 0x21, 0x30, 0x23, 0x4d, 0xc3, 0x9e, 0x94,
 				0x63, 0x56, 0x1c, 0xa6, 0x66, 0x7f, 0x40, 0xf8,
 			},
-			chainParams:        MainNetParams,
+			chainParams:        chaincfg.BitcoinMainNetParams,
 			wantAddress:        "14QcTVDFpuGsmNSLeDexB1kWCdoBnTTtgr",
 			encodingForAddress: Legacy,
 			want:               "xpub6DVHQNhjvVchuKeMGnKbbNSdczQ4yMqEW1H1qhQzk1oPxkSqyHZR9Pn7zZ494sVhZqK2WD8kxo9rqiJFL41P67JCdNYka2W5LnANDVWSjzm",
@@ -248,7 +248,7 @@ func TestGetKeypair(t *testing.T) {
 	tests := []struct {
 		name        string
 		seed        string
-		chainParams ChainParams
+		chainParams chaincfg.ChainParams
 		derivation  []uint32
 		want        Keypair
 		wantErr     error
@@ -256,7 +256,7 @@ func TestGetKeypair(t *testing.T) {
 		{
 			name:        "Get keypair from a seed",
 			seed:        "I am the Lama from Lama land",
-			chainParams: MainNetParams,
+			chainParams: chaincfg.BitcoinMainNetParams,
 			derivation:  []uint32{44 + h, 0 + h, 0 + h},
 			want: Keypair{
 				ExtendedPublicKey: "xpub6CuV4qnYG4mQb6Q4qHy4dnovUzrt9PXGzA9v7yPjYeTKuQjACFXCFQbkFfvCTz8WsR3ggq7MaNDkwLjvoy6FZby3rZ9PLNGy51rVFdmwhrZ",
