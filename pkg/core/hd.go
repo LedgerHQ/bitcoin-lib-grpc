@@ -1,4 +1,4 @@
-package bitcoin
+package core
 
 import (
 	"encoding/hex"
@@ -6,6 +6,7 @@ import (
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/btcsuite/btcutil"
 	"github.com/btcsuite/btcutil/hdkeychain"
+	"github.com/ledgerhq/bitcoin-lib-grpc/pkg/chaincfg"
 	"github.com/pkg/errors"
 )
 
@@ -90,7 +91,7 @@ func (s *Service) GetAccountExtendedKey(
 	publicKey []byte,
 	chainCode []byte,
 	accountIndex uint32,
-	chainParams ChainParams,
+	chainParams chaincfg.ChainParams,
 ) (string, error) {
 	// Load the serialized public key to a btcec.PublicKey type, in order to
 	// ensure that the:
@@ -133,7 +134,7 @@ func (s *Service) GetAccountExtendedKey(
 
 // Useful service to get keypair (xpub + privKey) from a seed for testing.
 // Random seed is generated if no seed is provided.
-func (s *Service) GetKeypair(seed string, chainParams ChainParams, derivation []uint32) (Keypair, error) {
+func (s *Service) GetKeypair(seed string, chainParams chaincfg.ChainParams, derivation []uint32) (Keypair, error) {
 	var (
 		seedBytes []byte
 		response  Keypair

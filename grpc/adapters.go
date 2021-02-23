@@ -6,53 +6,53 @@ import (
 
 	"github.com/btcsuite/btcutil"
 	pb "github.com/ledgerhq/bitcoin-lib-grpc/pb/bitcoin"
-	"github.com/ledgerhq/bitcoin-lib-grpc/pkg/bitcoin"
-	"github.com/ledgerhq/bitcoin-lib-grpc/pkg/litecoin"
+	"github.com/ledgerhq/bitcoin-lib-grpc/pkg/chaincfg"
+	"github.com/ledgerhq/bitcoin-lib-grpc/pkg/core"
 	"github.com/pkg/errors"
 )
 
-func ChainParams(chainParams *pb.ChainParams) (bitcoin.ChainParams, error) {
+func ChainParams(chainParams *pb.ChainParams) (chaincfg.ChainParams, error) {
 	switch network := chainParams.GetBitcoinNetwork(); network {
 	case pb.BitcoinNetwork_BITCOIN_NETWORK_MAINNET:
-		return bitcoin.MainNetParams, nil
+		return chaincfg.BitcoinMainNetParams, nil
 	case pb.BitcoinNetwork_BITCOIN_NETWORK_TESTNET3:
-		return bitcoin.TestNet3Params, nil
+		return chaincfg.BitcoinTestNet3Params, nil
 	case pb.BitcoinNetwork_BITCOIN_NETWORK_REGTEST:
-		return bitcoin.RegressionNetParams, nil
+		return chaincfg.BitcoinRegressionNetParams, nil
 	}
 
 	switch network := chainParams.GetLitecoinNetwork(); network {
 	case pb.LitecoinNetwork_LITECOIN_NETWORK_MAINNET:
-		return litecoin.MainNetParams, nil
+		return chaincfg.LitecoinMainNetParams, nil
 	default:
 		return nil, errors.Wrapf(ErrUnknownNetwork,
 			"failed to decode chain params from network %s", network.String())
 	}
 }
 
-func BitcoinAddressEncoding(encoding pb.AddressEncoding) (bitcoin.AddressEncoding, error) {
+func BitcoinAddressEncoding(encoding pb.AddressEncoding) (core.AddressEncoding, error) {
 	switch encoding {
 	case pb.AddressEncoding_ADDRESS_ENCODING_P2PKH:
-		return bitcoin.Legacy, nil
+		return core.Legacy, nil
 	case pb.AddressEncoding_ADDRESS_ENCODING_P2SH_P2WPKH:
-		return bitcoin.WrappedSegwit, nil
+		return core.WrappedSegwit, nil
 	case pb.AddressEncoding_ADDRESS_ENCODING_P2WPKH:
-		return bitcoin.NativeSegwit, nil
+		return core.NativeSegwit, nil
 	case pb.AddressEncoding_ADDRESS_ENCODING_UNSPECIFIED:
-		return -1, errors.Wrapf(bitcoin.ErrUnknownAddressType,
+		return -1, errors.Wrapf(core.ErrUnknownAddressType,
 			"invalid address encoding %s", encoding)
 	default:
-		return -1, errors.Wrapf(bitcoin.ErrUnknownAddressType,
+		return -1, errors.Wrapf(core.ErrUnknownAddressType,
 			"invalid address encoding %s", encoding)
 	}
 }
 
-// Tx is an adapter function to build a *bitcoin.Tx object from a gRPC message.
+// Tx is an adapter function to build a *core.Tx object from a gRPC message.
 // It also converts raw gRPC values to a format that is acceptable to btcd.
-func Tx(txProto *pb.CreateTransactionRequest) (*bitcoin.Tx, error) {
-	var inputs []bitcoin.Input
+func Tx(txProto *pb.CreateTransactionRequest) (*core.Tx, error) {
+	var inputs []core.Input
 	for _, inputProto := range txProto.Inputs {
-		inputs = append(inputs, bitcoin.Input{
+		inputs = append(inputs, core.Input{
 			OutputHash:  inputProto.OutputHash,
 			OutputIndex: uint32(inputProto.OutputIndex),
 			Script:      inputProto.Script,
@@ -60,7 +60,7 @@ func Tx(txProto *pb.CreateTransactionRequest) (*bitcoin.Tx, error) {
 		})
 	}
 
-	var outputs []bitcoin.Output
+	var outputs []core.Output
 	for _, outputProto := range txProto.Outputs {
 		value, err := strconv.ParseInt(outputProto.Value, 10, 64)
 		if err != nil {
@@ -68,13 +68,13 @@ func Tx(txProto *pb.CreateTransactionRequest) (*bitcoin.Tx, error) {
 				"invalid output value: %s", outputProto.Value)
 		}
 
-		outputs = append(outputs, bitcoin.Output{
+		outputs = append(outputs, core.Output{
 			Address: outputProto.Address,
 			Value:   value,
 		})
 	}
 
-	return &bitcoin.Tx{
+	return &core.Tx{
 		Inputs:        inputs,
 		Outputs:       outputs,
 		ChangeAddress: txProto.ChangeAddress,
@@ -83,9 +83,9 @@ func Tx(txProto *pb.CreateTransactionRequest) (*bitcoin.Tx, error) {
 	}, nil
 }
 
-// RawTx is an adapter function to build a *bitcoin.RawTx object from a gRPC message.
-func RawTx(rawTxProto *pb.RawTransactionResponse) *bitcoin.RawTx {
-	return &bitcoin.RawTx{
+// RawTx is an adapter function to build a *core.RawTx object from a gRPC message.
+func RawTx(rawTxProto *pb.RawTransactionResponse) *core.RawTx {
+	return &core.RawTx{
 		Hex:         rawTxProto.Hex,
 		Hash:        rawTxProto.Hash,
 		WitnessHash: rawTxProto.WitnessHash,
@@ -93,7 +93,7 @@ func RawTx(rawTxProto *pb.RawTransactionResponse) *bitcoin.RawTx {
 }
 
 // Utxo is an adapter function to build a *bitcoin.Utxo object from a gRPC message.
-func Utxo(proto *pb.Utxo) (*bitcoin.Utxo, error) {
+func Utxo(proto *pb.Utxo) (*core.Utxo, error) {
 	value, err := strconv.ParseInt(proto.Value, 10, 64)
 	if err != nil {
 		return nil, errors.Wrapf(err,
@@ -106,7 +106,7 @@ func Utxo(proto *pb.Utxo) (*bitcoin.Utxo, error) {
 			"invalid utxo script hex: %s", proto.ScriptHex)
 	}
 
-	return &bitcoin.Utxo{
+	return &core.Utxo{
 		Script:     script,
 		Value:      value,
 		Derivation: proto.Derivation,
@@ -114,7 +114,7 @@ func Utxo(proto *pb.Utxo) (*bitcoin.Utxo, error) {
 }
 
 // SignatureMetadata is an adapter function to build a *bitcoin.SignatureMetadata object from a gRPC message.
-func SignatureMetadata(proto *pb.SignatureMetadata, chainParams bitcoin.ChainParams) (*bitcoin.SignatureMetadata, error) {
+func SignatureMetadata(proto *pb.SignatureMetadata, chainParams chaincfg.ChainParams) (*core.SignatureMetadata, error) {
 	addrEncoding, err := BitcoinAddressEncoding(proto.AddrEncoding)
 	if err != nil {
 		return nil, errors.Wrapf(err,
@@ -133,7 +133,7 @@ func SignatureMetadata(proto *pb.SignatureMetadata, chainParams bitcoin.ChainPar
 			"failed to parse pub key from signature")
 	}
 
-	return &bitcoin.SignatureMetadata{
+	return &core.SignatureMetadata{
 		DerSig:       proto.DerSignature,
 		PubKey:       addressPubKey.PubKey(),
 		AddrEncoding: addrEncoding,

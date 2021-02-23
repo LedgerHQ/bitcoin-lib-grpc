@@ -4,18 +4,18 @@ import (
 	"context"
 
 	pb "github.com/ledgerhq/bitcoin-lib-grpc/pb/bitcoin"
-	"github.com/ledgerhq/bitcoin-lib-grpc/pkg/bitcoin"
+	"github.com/ledgerhq/bitcoin-lib-grpc/pkg/core"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type controller struct {
-	svc bitcoin.Service
+	svc core.Service
 }
 
 func NewBitcoinController() *controller {
 	return &controller{
-		svc: bitcoin.Service{},
+		svc: core.Service{},
 	}
 }
 
@@ -159,7 +159,7 @@ func (c *controller) GenerateDerSignatures(
 
 	rawTx := RawTx(request.RawTx)
 
-	utxos := make([]bitcoin.Utxo, len(request.Utxos))
+	utxos := make([]core.Utxo, len(request.Utxos))
 	for idx, utxoProto := range request.Utxos {
 		utxo, err := Utxo(utxoProto)
 		if err != nil {
@@ -192,7 +192,7 @@ func (c *controller) SignTransaction(
 
 	rawTx := RawTx(request.RawTx)
 
-	signatures := make([]bitcoin.SignatureMetadata, len(request.Signatures))
+	signatures := make([]core.SignatureMetadata, len(request.Signatures))
 
 	for idx, signature := range request.Signatures {
 		sigMetadata, err := SignatureMetadata(signature, chainParams)
