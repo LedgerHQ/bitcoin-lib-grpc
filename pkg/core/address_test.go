@@ -35,6 +35,18 @@ func TestService_ValidateAddress(t *testing.T) {
 			wantErr:     errors.New("string not all lowercase or all uppercase"),
 		},
 		{
+			name:        "mainnet bech32 UPPERCASE valid",
+			address:     "BC1QH4KL0A0A3D7SU8UDC2RN62F8W939PRQPL34Z86",
+			chainParams: chaincfg.BitcoinMainNetParams,
+			want:        "bc1qh4kl0a0a3d7su8udc2rn62f8w939prqpl34z86",
+		},
+		{
+			name:        "mainnet P2PKH UPPERCASE invalid",
+			address:     "1MIRQ9BWYQCGVJPWKUGAPU5OUK2E2EY4GX",
+			chainParams: chaincfg.BitcoinMainNetParams,
+			wantErr:     errors.New("decoded address is of unknown format"),
+		},
+		{
 			name:        "LTC mainnet P2WPKH valid",
 			address:     "ltc1q7qnj9xm8wp8ucmg64lk0h03as8k6ql6rk4wvsd",
 			chainParams: chaincfg.LitecoinMainNetParams,
