@@ -77,16 +77,16 @@ func TestCreateTransaction(t *testing.T) {
 				t.Fatalf("CreateTransaction() got error '%v'", err)
 			}
 
-			if rawTx.NotEnoughUtxo != nil && tt.wantNotEnoughUtxoAmount == nil {
-				t.Fatalf("CreateTransaction() got NotEnoughUtxo '%v'", rawTx.NotEnoughUtxo)
+			if rawTx.RawTx.NotEnoughUtxo != nil && tt.wantNotEnoughUtxoAmount == nil {
+				t.Fatalf("CreateTransaction() got NotEnoughUtxo '%v'", rawTx.RawTx.NotEnoughUtxo)
 			}
 
-			if rawTx.NotEnoughUtxo == nil && tt.wantNotEnoughUtxoAmount != nil {
+			if rawTx.RawTx.NotEnoughUtxo == nil && tt.wantNotEnoughUtxoAmount != nil {
 				t.Fatalf("CreateTransaction() should have '%v'", tt.wantNotEnoughUtxoAmount)
 			}
 
-			if rawTx.NotEnoughUtxo != nil && tt.wantNotEnoughUtxoAmount != nil && rawTx.NotEnoughUtxo.MissingAmount != tt.wantNotEnoughUtxoAmount.MissingAmount {
-				t.Fatalf("CreateTransaction() got NotEnoughUtxo '%v'", rawTx.NotEnoughUtxo)
+			if rawTx.RawTx.NotEnoughUtxo != nil && tt.wantNotEnoughUtxoAmount != nil && rawTx.RawTx.NotEnoughUtxo.MissingAmount != tt.wantNotEnoughUtxoAmount.MissingAmount {
+				t.Fatalf("CreateTransaction() got NotEnoughUtxo '%v'", rawTx.RawTx.NotEnoughUtxo)
 			}
 
 			if tt.wantNotEnoughUtxoAmount == nil {
@@ -94,7 +94,7 @@ func TestCreateTransaction(t *testing.T) {
 					t.Fatalf("CreateTransaction() got nil response")
 				}
 
-				if len(rawTx.Hex) == 0 {
+				if len(rawTx.RawTx.Hex) == 0 {
 					t.Fatalf("CreateTransaction() got empty raw hex")
 				}
 			}

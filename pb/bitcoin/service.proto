@@ -221,7 +221,7 @@ message CreateTransactionRequest {
   int64 fee_sat_per_kb = 6;
 }
 
-// RawTransactionResponse defines the builded raw tx.
+// RawTransactionResponse defines the built raw tx.
 message RawTransactionResponse {
   // hex contains the unsigned transaction serialized according to bitcoin
   // encoding.
@@ -237,8 +237,12 @@ message RawTransactionResponse {
   // Same as hash if no witness is present.
   string witness_hash = 3;
 
+  int64 change_amount = 4;
+
+  int64 total_fees = 5;
+
   // If not enough utxos to pay for fees.
-  NotEnoughUtxo not_enough_utxo = 4;
+  NotEnoughUtxo not_enough_utxo = 6;
 }
 
 message NotEnoughUtxo {
