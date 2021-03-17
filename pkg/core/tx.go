@@ -48,6 +48,12 @@ type RawTx struct {
 	NotEnoughUtxo *NotEnoughUtxo
 }
 
+type RawTxWithChangeFees struct {
+	RawTx RawTx
+	Change int64
+	TotalFees int64
+}
+
 type NotEnoughUtxo struct {
 	MissingAmount int64
 }
@@ -66,7 +72,7 @@ type SignatureMetadata struct {
 	AddrEncoding AddressEncoding
 }
 
-func (s *Service) CreateTransaction(tx *Tx, chainParams chaincfg.ChainParams) (*RawTx, error) {
+func (s *Service) CreateTransaction(tx *Tx, chainParams chaincfg.ChainParams) (*RawTxWithChangeFees, error) {
 	var inputAmount, targetAmount int64
 
 	// Create a new btcd transaction
@@ -158,7 +164,12 @@ func (s *Service) CreateTransaction(tx *Tx, chainParams chaincfg.ChainParams) (*
 
 	// Not enough utxos to pay fees
 	if changeAmount < 0 {
-		return &RawTx{NotEnoughUtxo: &NotEnoughUtxo{maxRequiredFee}}, nil
+		retval := RawTxWithChangeFees{
+			RawTx:     RawTx{NotEnoughUtxo: &NotEnoughUtxo{maxRequiredFee}},
+			Change:    changeAmount,
+			TotalFees: 0,
+		}
+		return &retval, nil
 	}
 
 	// Add change output to TxOut arrays
@@ -171,7 +182,14 @@ func (s *Service) CreateTransaction(tx *Tx, chainParams chaincfg.ChainParams) (*
 	msgTx.LockTime = tx.LockTime
 
 	// Encode MsgTx to RawTx
-	return encodeMsgTx(msgTx)
+	rawTx, err := encodeMsgTx(msgTx)
+
+	return &RawTxWithChangeFees{
+		RawTx:     *rawTx,
+		Change:    changeAmount,
+		TotalFees: inputAmount - targetAmount - changeAmount,
+	}, err
+	// encodeMsgTx(msgTx), changeAmount,
 }
 
 func (s *Service) GenerateDerSignatures(msgTx *wire.MsgTx, utxos []Utxo, privKey string) ([]DerSignature, error) {

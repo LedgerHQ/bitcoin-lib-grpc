@@ -113,21 +113,23 @@ func (c *controller) CreateTransaction(
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
 
-	rawTx, err := c.svc.CreateTransaction(tx, chainParams)
+	rawTxWithExtra, err := c.svc.CreateTransaction(tx, chainParams)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
-	var notEnoughtUtxo *pb.NotEnoughUtxo
-	if rawTx.NotEnoughUtxo != nil {
-		notEnoughtUtxo = &pb.NotEnoughUtxo{MissingAmount: rawTx.NotEnoughUtxo.MissingAmount}
+	var notEnoughUtxo *pb.NotEnoughUtxo
+	if rawTxWithExtra.RawTx.NotEnoughUtxo != nil {
+		notEnoughUtxo = &pb.NotEnoughUtxo{MissingAmount: rawTxWithExtra.RawTx.NotEnoughUtxo.MissingAmount}
 	}
 
 	response := pb.RawTransactionResponse{
-		Hex:           rawTx.Hex,
-		Hash:          rawTx.Hash,
-		WitnessHash:   rawTx.WitnessHash,
-		NotEnoughUtxo: notEnoughtUtxo,
+		Hex:           rawTxWithExtra.RawTx.Hex,
+		Hash:          rawTxWithExtra.RawTx.Hash,
+		WitnessHash:   rawTxWithExtra.RawTx.WitnessHash,
+		ChangeAmount:  rawTxWithExtra.Change,
+		TotalFees:     rawTxWithExtra.TotalFees,
+		NotEnoughUtxo: notEnoughUtxo,
 	}
 
 	return &response, nil
