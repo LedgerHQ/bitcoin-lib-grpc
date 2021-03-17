@@ -49,8 +49,8 @@ type RawTx struct {
 }
 
 type RawTxWithChangeFees struct {
-	RawTx RawTx
-	Change int64
+	RawTx     RawTx
+	Change    int64
 	TotalFees int64
 }
 
