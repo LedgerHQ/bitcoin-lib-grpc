@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package pb.bitcoin;
-option go_package = ".;bitcoin";
+option go_package = "github.com/ledgerhq/bitcoin-lib-grpc/pb/bitcoin";
 option java_package = "co.ledger.protobuf.bitcoin.libgrpc";
 
 // CoinService exposes a gRPC interface to wrap protocol-centric logic
@@ -237,8 +237,10 @@ message RawTransactionResponse {
   // Same as hash if no witness is present.
   string witness_hash = 3;
 
+  // Amount of change generated to the change address
   int64 change_amount = 4;
 
+  // The total fees for the transaction
   int64 total_fees = 5;
 
   // If not enough utxos to pay for fees.

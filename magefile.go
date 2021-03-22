@@ -14,9 +14,10 @@ const (
 	entryPoint = "cmd/lbs.go"
 	ldFlags    = "-X $PACKAGE/version/version.commitHash=$COMMIT_HASH " +
 		"-X $PACKAGE/version/version.buildDate=$BUILD_DATE"
-	protoPlugins  = "plugins=grpc"
-	protoDir      = "pb/bitcoin"
-	protoFileName = "service.proto"
+	protoPlugins        = "plugins=grpc"
+	protoDir            = "pb"
+	protoFileName       = "bitcoin/service.proto"
+	protoArtifactModule = "github.com/ledgerhq/bitcoin-lib-grpc/pb"
 )
 
 // Allow user to override executables on UNIX-like systems.
@@ -44,8 +45,10 @@ func init() {
 
 func Proto() error {
 	return sh.Run(protoc,
-		fmt.Sprintf("--go_out=%s:%s", protoPlugins, protoDir), // protoc flags
-		fmt.Sprintf("%s/%s", protoDir, protoFileName))         // input .proto
+		fmt.Sprintf("--go_out=%s:%s", protoPlugins, protoDir),  // protoc flags
+		fmt.Sprintf("%s/%s", protoDir, protoFileName),          // input .proto
+		fmt.Sprintf("--go_opt=module=%s", protoArtifactModule), // module output
+	)
 }
 
 func Buf() error {
