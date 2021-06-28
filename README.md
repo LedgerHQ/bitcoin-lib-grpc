@@ -45,6 +45,10 @@ Full details available [here](https://github.com/LedgerHQ/bitcoin-lib-grpc/blob/
 
   ⚠️ **Note:** for use in tests only.
 
+### Architecture
+
+![](./docs/lbs.png)
+
 ### Development
 
 1. Install [mage](https://magefile.org).
