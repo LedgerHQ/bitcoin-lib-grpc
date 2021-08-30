@@ -36,6 +36,10 @@ FROM alpine
 
 COPY --from=builder /app/lbs /app/lbs
 
+RUN wget -O /bin/grpc_health_probe \
+    https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/v0.4.5/grpc_health_probe-linux-386 \
+    && chmod +x /bin/grpc_health_probe
+
 ENV GRPC_GO_LOG_SEVERITY_LEVEL info
 ENV GRPC_GO_LOG_VERBOSITY_LEVEL 1
 
