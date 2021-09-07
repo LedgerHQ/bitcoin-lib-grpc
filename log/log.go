@@ -6,6 +6,8 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/sirupsen/logrus"
+
+	"github.com/ledgerhq/bitcoin-lib-grpc/config"
 )
 
 // Logger defines a set of methods for writing application logs. Derived from and
@@ -37,7 +39,7 @@ type Logger interface {
 	Warnln(args ...interface{})
 }
 
-var defaultLogger *logrus.Logger
+var defaultLogger = NewLogger(*config.LoadProvider("bitcoin"))
 
 // NewLogger returns a configured logrus instance
 func NewLogger(cfg viper.Viper) *logrus.Logger {
