@@ -52,6 +52,12 @@ func TestService_ValidateAddress(t *testing.T) {
 			chainParams: chaincfg.LitecoinMainNetParams,
 			want:        "ltc1q7qnj9xm8wp8ucmg64lk0h03as8k6ql6rk4wvsd",
 		},
+		{
+			name:        "BCH mainnet P2WPKH valid",
+			address:     "bitcoincash1q8zwcc8yasu0t95r4uu036v4mhu0x0th29p03d6",
+			chainParams: chaincfg.BitcoinCashMainNetParams,
+			want:        "bitcoincash1q8zwcc8yasu0t95r4uu036v4mhu0x0th29p03d6",
+		},
 	}
 
 	s := &Service{}
@@ -331,6 +337,18 @@ func TestEncodeAddress(t *testing.T) {
 			encoding:    NativeSegwit,
 			chainParams: chaincfg.LitecoinMainNetParams,
 			want:        "ltc1q7qnj9xm8wp8ucmg64lk0h03as8k6ql6rk4wvsd",
+		},
+		// BCH (Bitcoin Cash)
+		{
+			// https://github.com/LedgerHQ/lib-ledger-core/blob/978a496/core/test/bitcoin/address_test.cpp#L93
+			name: "Xpub P2WPKH",
+			publicKey: derivePublicKey(
+				"xpub6BvNdfGcyMB9Usq88ibXUt3KhbaEJVLFMbhTSNNfTm8Qf1sX9inTv3xL6pA6KofW4WF9GpdxwGDoYRwRDjHEir3Av23m2wHb7AqhxJ9ohE8",
+				[]uint32{0, 0},
+			),
+			encoding:    NativeSegwit,
+			chainParams: chaincfg.BitcoinCashMainNetParams,
+			want:        "bitcoincash1q8zwcc8yasu0t95r4uu036v4mhu0x0th29p03d6",
 		},
 	}
 

@@ -70,6 +70,11 @@ enum LitecoinNetwork {
   LITECOIN_NETWORK_MAINNET     = 1;  // Litecoin main network
 }
 
+enum BitcoinCashNetwork {
+  BITCOIN_CASH_NETWORK_UNSPECIFIED = 0;  // Fallback value if unrecognized / unspecified
+  BITCOIN_CASH_NETWORK_MAINNET     = 1;  // Bitcoin cash main network
+}
+
 // ChainParams defines all the configuration required to uniquely identify a
 // coin, along with its network.
 //
@@ -81,6 +86,7 @@ message ChainParams {
   oneof network {
     BitcoinNetwork bitcoin_network = 1;
     LitecoinNetwork litecoin_network = 2;
+    BitcoinCashNetwork bitcoin_cash_network = 3;
   }
 }
 
@@ -265,7 +271,7 @@ message Input {
 
 // This is the definition of a transaction Output
 message Output {
-  // Address of the reciepent
+  // Address of the recipient
   string address = 1;
   // Amount of coins to be sent
   string value = 2;

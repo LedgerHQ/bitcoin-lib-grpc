@@ -46,12 +46,10 @@ jobs:
         run: mage -v buf
 
       - name: Build
-        run: |
-          mage -v build
+        run: mage -v build
 
       - name: Run golangci-lint
-        run: |
-          mage -v lint
+        run: mage -v lint
 
       - name: Test (with -race flag)
         run: mage -v testracecover

@@ -13,6 +13,8 @@ It is based on btcd - a Bitcoin SDK and full node implementation written in Go.
   * regtest
 * Litecoin
   * mainnet
+* Bitcoin Cash
+  * mainnet
 
 ### Summary of gRPC methods
 

@@ -1,8 +1,6 @@
 package chaincfg
 
-import (
-	"github.com/btcsuite/btcd/chaincfg"
-)
+import "github.com/btcsuite/btcd/chaincfg"
 
 // LitecoinMainNetParams defines the network parameters for the main Litecoin network.
 // For reference, see: https://github.com/ltcsuite/ltcd/blob/master/chaincfg/params.go#L229

@@ -24,6 +24,11 @@ func ChainParams(chainParams *pb.ChainParams) (chaincfg.ChainParams, error) {
 	switch network := chainParams.GetLitecoinNetwork(); network {
 	case pb.LitecoinNetwork_LITECOIN_NETWORK_MAINNET:
 		return chaincfg.LitecoinMainNetParams, nil
+	}
+
+	switch network := chainParams.GetBitcoinCashNetwork(); network {
+	case pb.BitcoinCashNetwork_BITCOIN_CASH_NETWORK_MAINNET:
+		return chaincfg.BitcoinCashMainNetParams, nil
 	default:
 		return nil, errors.Wrapf(ErrUnknownNetwork,
 			"failed to decode chain params from network %s", network.String())
